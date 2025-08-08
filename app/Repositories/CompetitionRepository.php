@@ -17,12 +17,16 @@ class CompetitionRepository implements CompetitionRepositoryInterface
 
     public function get_competitions()
     {
-        return $this->model::get();
+        return $this->model::with(['details', 'organisationType', 'organisation'])->get();
     }
 
     public function store_competition(array $data)
     {
-        return $this->model::create($data);
+        $competitions = [];
+        foreach ($data as $competitionData) {
+            $competitions[] = $this->model::create($competitionData);
+        }
+        return $competitions;
     }
 
     public function get_competition($id)
@@ -35,31 +39,31 @@ class CompetitionRepository implements CompetitionRepositoryInterface
         return $this->model::with('competitionUsers', 'competitionUsers.competitionResult')->find($id);
     }
 
-    public function update_competition($id, array $data, $videos = null)
+
+    public function update_competition($id, array $data, $youtubeLinks = null)
     {
         $competition = $this->model::with('videos')->findOrFail($id);
 
         $competition->update($data);
 
-        if ($videos && count($videos) > 0) {
+        if ($youtubeLinks && count($youtubeLinks) > 0) {
+            // Delete old videos
             foreach ($competition->videos as $video) {
-                if (Storage::disk('public')->exists(str_replace('storage/', '', $video->video_file))) {
-                    Storage::disk('public')->delete(str_replace('storage/', '', $video->video_file));
-                }
                 $video->delete();
             }
 
-            foreach ($videos as $videoFile) {
-                $videoPath = $videoFile->store('competition_videos', 'public');
-                $competition->videos()->create([
-                    'video_file' => $videoPath,
-                ]);
+            // Save new YouTube links
+            foreach ($youtubeLinks as $link) {
+                if (!empty($link)) {
+                    $competition->videos()->create([
+                        'video_file' => $link
+                    ]);
+                }
             }
         }
 
         return $competition;
     }
-
 
     public function delete_competition($id)
     {

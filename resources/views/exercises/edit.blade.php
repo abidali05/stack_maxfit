@@ -95,15 +95,7 @@
 
                             <div class="col-md-6">
                                 <label for="video_file" class="form-label">Video File</label>
-                                <input type="file" class="form-control" name="video_file" id="video_file"
-                                    accept="video/mp4,video/x-m4v,video/*">
-
-                                @if ($exercise->video_file)
-                                    <video width="250" height="140" class="mt-2" controls>
-                                        <source src="{{ asset('storage/' . $exercise->video_file) }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                @endif
+                                <input type="text" class="form-control" name="video_file" value="{{ $exercise->video_file }}" id="video_file">
 
                                 @error('video_file')
                                     <span class="text-danger">{{ $message }}</span>

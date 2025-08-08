@@ -18,6 +18,11 @@ class Competition extends Model
         return $this->hasMany(CompetitionResult::class);
     }
 
+    public function details()
+    {
+        return $this->hasMany(CompetitionDetail::class);
+    }
+
     public function competitionUsers()
     {
         return $this->hasMany(CompetitionUser::class);

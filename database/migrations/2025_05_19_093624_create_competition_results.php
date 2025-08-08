@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('competition_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('competition_user_id')->constrained('competition_users')->onDelete('cascade');
-            $table->string('percentage');
-            $table->string('per_min');
-            $table->string('position');
+            $table->foreignId('competition_user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('exercise_id')->constrained()->onDelete('cascade');
+            $table->decimal('score', 8, 2);
             $table->timestamps();
+
+            $table->unique(['competition_user_id', 'exercise_id'], 'unique_competition_result');
         });
     }
 

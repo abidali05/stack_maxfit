@@ -55,7 +55,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/plan-answers', PlanAnswerController::class);
     Route::get('/plans', PlanController::class);
     Route::get('/get-competitions', [CompetitionController::class, 'getCompetition']);
+    Route::get('/get-competitions-data/{status}', [CompetitionController::class, 'getCompetitionStatus']);
     Route::get('/competition-detail/{id}', [CompetitionController::class, 'competitionDetail']);
+    Route::get('/get-competition-detail/{id}', [CompetitionController::class, 'getCompetitionDetail']);
     Route::post('/accept-or-reject/{id}', [CompetitionController::class, 'acceptOrReject']);
     Route::get('/get-results', [CompetitionController::class, 'getResult']);
     Route::get('/get-appeal/{id}', [CompetitionController::class, 'getAppeal']);

@@ -13,10 +13,12 @@ return new class extends Migration
     {
         Schema::create('competition_users', function (Blueprint $table) {
             $table->id();
-            $table->string('user_id');
-            $table->foreignId('competition_id')->constrained('competitions')->onDelete('cascade');
-            $table->enum('status', [0,1]);
+            $table->foreignId('competition_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('status', ['accepted', 'rejected', 'pending'])->default('pending');
             $table->timestamps();
+
+            $table->unique(['competition_id', 'user_id'], 'unique_competition_user');
         });
     }
 

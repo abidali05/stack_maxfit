@@ -1,34 +1,38 @@
 @extends('layouts.app')
-@section('title', 'Videos')
+@section('title', 'Competitions')
 @section('content')
     <div class="px-4 pt-4 container-fluid" style="min-height: 82.5vh">
         <div class="row g-4">
             <div class="col-sm-12 col-xl-12">
                 <div class="p-4 text-center rounded bg-light">
                     <div class="mb-4 d-flex align-items-center justify-content-between">
-                        <h6 class="mb-0">Videos</h6>
+                        <h6 class="mb-0">Competition Details</h6>
                     </div>
                     <div class="table-responsive">
-                        <table id="competitions-table" class="table mb-0 align-middle text-start table-bordered datatable"
-                            style="table-layout: auto;">
+                        <table class="table">
                             <thead>
-                                <tr class="text-dark">
-                                    <th>S.No</th>
-                                    <th>Competition</th>
-                                    <th>Competition Video</th>
+                                <tr>
+                                    <th>#</th>
+                                    <th>User</th>
+                                    <th>City</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th>Rank</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($videos as $i => $video)
+                                @foreach ($competition->competitionUsers as $i => $cu)
                                     <tr>
                                         <td>{{ $i + 1 }}</td>
-                                        <td>{{ $video->competition->name ?? '-' }}</td>
+                                        <td>{{ $cu->user->name }}</td>
+                                        <td>{{ $competition->city }}</td>
+                                        <td>{{ $cu->total->total_score ?? '-' }}</td>
+                                        <td>{{ $cu->status ?? 'Pending' }}</td>
+                                        <td>{{ $cu->total->rank ?? '-' }}</td>
                                         <td>
-                                            @if($video->video_file)
-                                                <a href="{{ $video->video_file }}" target="_blank">View Video</a>
-                                            @else
-                                                -
-                                            @endif
+                                            <a href="{{ route('competition-users.edit', $cu->id) }}"
+                                                class="btn btn-sm btn-primary">Update</a>
                                         </td>
                                     </tr>
                                 @endforeach

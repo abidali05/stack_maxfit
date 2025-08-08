@@ -7,14 +7,16 @@ use App\Http\Controllers\PlansController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\ExerciseController;
+use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\PlanQuestionController;
-use App\Http\Controllers\CompetitionController;
+use App\Http\Controllers\CompetitionUserController;
+use App\Http\Controllers\RulesOfCountingController;
 use App\Http\Controllers\ExerciseCategoryController;
+use App\Http\Controllers\competitionDetailController;
 use App\Http\Controllers\OrganisationTypesController;
 use App\Http\Controllers\MedicalAssessmentQuestionController;
-use App\Http\Controllers\RulesOfCountingController;
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -39,9 +41,17 @@ Route::middleware('auth')->group(function () {
     Route::resource('exercises', ExerciseController::class);
     Route::resource('plan-questions', PlanQuestionController::class);
     Route::resource('competitions', CompetitionController::class);
+    Route::get('competition-details/{id}/users', [CompetitionUserController::class, 'index'])->name('competition-users.index');
+    Route::get('/competition-users/{id}/edit', [CompetitionUserController::class, 'edit'])->name('competition-users.edit');
+    Route::get('/competition-user-totals/{id}/edit', [CompetitionUserController::class, 'editRank'])->name('competition-user-totals.edit');
+    Route::put('/competition-user-totals/{id}', [CompetitionUserController::class, 'updateRank'])->name('competition-user-totals.update');
+    Route::post('/competitions/{id}/generate-results', [CompetitionUserController::class, 'generateResults'])->name('competitions.generate-results');
+    Route::put('/competition-users/{id}', [CompetitionUserController::class, 'update'])->name('competition-users.update');
+    Route::resource('competition-details', competitionDetailController::class);
+    Route::post('/competitions/{id}/results', [CompetitionController::class, 'storeResults'])->name('competitions.results.store');
     Route::get('/get-organizations/{org_type_id}', [CompetitionController::class, 'getOrganizationsByType'])->name('get.organizations');
-    Route::get('competitions-videos', [CompetitionController::class, 'appeals'])->name('competitions.appeals');
-    Route::get('competitions-appeals', [CompetitionController::class, 'competitionVideos'])->name('competitions.competitionVideos');
+    Route::get('competitions-videos', [CompetitionController::class, 'competitionVideos'])->name('competitions.videos');
+    Route::get('competitions-appeals', [CompetitionController::class, 'competitionAppeals'])->name('competitions.appeals');
     Route::delete('destroy-appeal/{id}', [CompetitionController::class, 'destroyAppeal'])->name('competitions.destroyAppeal');
     Route::put('update-appeal-status/{id}', [CompetitionController::class, 'updateAppealStatus'])->name('competitions.updateAppealStatus');
     Route::resource('results', ResultController::class);

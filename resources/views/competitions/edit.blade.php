@@ -46,10 +46,16 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Coach Name</label>
-                                <input type="text" class="form-control" name="coach_name"
-                                    value="{{ old('coach_name', $competition->coach_name) }}" required>
-                                @error('coach_name')
+                                <label class="form-label">Status</label>
+                                <select class="form-control" name="status">
+                                    <option value="active"
+                                        {{ old('status', $competition->status) === 'active' ? 'selected' : '' }}>Active
+                                    </option>
+                                    <option value="inactive"
+                                        {{ old('status', $competition->status) === 'inactive' ? 'selected' : '' }}>
+                                        Inactive</option>
+                                </select>
+                                @error('status')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -64,82 +70,27 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">City</label>
-                                <input type="text" class="form-control" name="city"
-                                    value="{{ old('city', $competition->city) }}" required>
-                                @error('city')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Start Date</label>
-                                <input type="date" class="form-control" name="start_date"
-                                    value="{{ old('start_date', $competition->start_date) }}" required>
-                                @error('start_date')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">End Date</label>
-                                <input type="date" class="form-control" name="end_date"
-                                    value="{{ old('end_date', $competition->end_date) }}" required>
-                                @error('end_date')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Start Time</label>
-                                <input type="time" class="form-control" name="start_time"
-                                    value="{{ old('start_time', \Carbon\Carbon::parse($competition->start_time)->format('H:i')) }}"
-                                    required>
-                                @error('start_time')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">End Time</label>
-                                <input type="time" class="form-control" name="end_time"
-                                    value="{{ old('end_time', \Carbon\Carbon::parse($competition->end_time)->format('H:i')) }}"
-                                    required>
-                                @error('end_time')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
                                 <label class="form-label">Time Allowed (minutes)</label>
                                 <input type="number" class="form-control" name="time_allowed" min="1"
-                                    value="{{ old('time_allowed', $competition->time_allowed) }}" required>
+                                    value="{{ old('time_allowed', $competition->time_allowed) }}">
                                 @error('time_allowed')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Status</label>
-                                <select class="form-control" name="status" required>
-                                    <option value="active" {{ old('status', $competition->status) === 'active' ? 'selected' : '' }}>Active
-                                    </option>
-                                    <option value="inactive" {{ old('status', $competition->status) === 'inactive' ? 'selected' : '' }}>
-                                        Inactive</option>
-                                </select>
-                                @error('status')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
                                 <label class="form-label">Select Genz</label>
-                                <select class="form-control" id="genz" disabled required>
+                                <select class="form-control" id="genz" disabled>
                                     <option value="">Select</option>
-                                    <option value="motherfits" {{ old('genz', $competition->genz) === 'motherfits' ? 'selected' : '' }}>Motherfits</option>
-                                    <option value="fatherfits" {{ old('genz', $competition->genz) === 'fatherfits' ? 'selected' : '' }}>Fatherfits</option>
+                                    <option value="motherfits"
+                                        {{ old('genz', $competition->genz) === 'motherfits' ? 'selected' : '' }}>Motherfits
+                                    </option>
+                                    <option value="fatherfits"
+                                        {{ old('genz', $competition->genz) === 'fatherfits' ? 'selected' : '' }}>Fatherfits
+                                    </option>
                                 </select>
-                                <input type="hidden" name="genz" id="genz_hidden" value="{{ old('genz', $competition->genz) }}">
+                                <input type="hidden" name="genz" id="genz_hidden"
+                                    value="{{ old('genz', $competition->genz) }}">
                                 @error('genz')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -147,7 +98,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Organization Type</label>
-                                <select class="form-control" name="org_type" id="org_type" required>
+                                <select class="form-control" name="org_type" id="org_type">
                                     <option value="">Select</option>
                                     @foreach ($organizationTypes as $organizationType)
                                         <option value="{{ $organizationType->id }}"
@@ -163,7 +114,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Organization</label>
-                                <select class="form-control" name="org" id="org" required>
+                                <select class="form-control" name="org" id="org">
                                     <option value="">Select</option>
                                     <!-- Options populated by AJAX -->
                                 </select>
@@ -172,33 +123,32 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Image</label>
-                                <input type="file" class="form-control" name="image" accept="image/*">
-                                @if ($competition->image)
-                                    <div class="mt-2">
-                                        <img src="{{ asset($competition->image) }}" alt="Current Image" height="100">
-                                    </div>
-                                @endif
-                                @error('image')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Competition Videos</label>
-                                <input type="file" class="form-control" name="videos[]"
-                                    accept="video/mp4,video/x-m4v,video/*" multiple>
-                                @error('videos.*')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
                             <div class="col-md-12">
-                                <label class="form-label">Description</label>
-                                <textarea class="form-control" name="description" rows="4">{{ old('description', $competition->description) }}</textarea>
-                                @error('description')
-                                    <span class="text-danger">{{ $message }}</span>
+                                <label class="form-label">YouTube Video Links</label>
+                                <div id="youtube-links-wrapper">
+                                    @if (old('youtube_links', $competition->videos->pluck('video_file')->toArray()))
+                                        @foreach (old('youtube_links', $competition->videos->pluck('video_file')->toArray()) as $index => $link)
+                                            <div class="d-flex mb-2 youtube-link-row">
+                                                <input type="url" class="form-control me-2" name="youtube_links[]"
+                                                    value="{{ $link }}"
+                                                    placeholder="https://www.youtube.com/watch?v=..." required>
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm remove-link">&times;</button>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="d-flex mb-2 youtube-link-row">
+                                            <input type="url" class="form-control me-2" name="youtube_links[]"
+                                                placeholder="https://www.youtube.com/watch?v=..." required>
+                                            <button type="button"
+                                                class="btn btn-danger btn-sm remove-link">&times;</button>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="add-link">+ Add
+                                    another link</button>
+                                @error('youtube_links.*')
+                                    <span class="text-danger d-block">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
@@ -256,10 +206,11 @@
             if (orgTypeId) {
                 // Make AJAX request to fetch organizations
                 fetch(`/get-organizations/${orgTypeId}`, {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                'content')
+                        }
+                    })
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(org => {
@@ -282,6 +233,29 @@
             if (orgTypeSelect.value) {
                 orgTypeSelect.dispatchEvent(new Event('change'));
             }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const wrapper = document.getElementById("youtube-links-wrapper");
+            const addLinkBtn = document.getElementById("add-link");
+
+            addLinkBtn.addEventListener("click", function() {
+                const div = document.createElement("div");
+                div.classList.add("d-flex", "mb-2", "youtube-link-row");
+
+                div.innerHTML = `
+                <input type="url" class="form-control me-2" name="youtube_links[]" placeholder="https://www.youtube.com/watch?v=..." required>
+                <button type="button" class="btn btn-danger btn-sm remove-link">&times;</button>
+            `;
+
+                wrapper.appendChild(div);
+            });
+
+            wrapper.addEventListener("click", function(e) {
+                if (e.target.classList.contains("remove-link")) {
+                    e.target.closest(".youtube-link-row").remove();
+                }
+            });
         });
     </script>
 @endsection

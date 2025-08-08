@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exercise;
+use App\Models\Competition;
 use Illuminate\Http\Request;
 use App\Models\Organisations;
 use App\Models\CompetitionVideo;
 use App\Models\CompetitionAppeal;
+use App\Models\CompetitionDetail;
 use App\Models\CompetitionResult;
 use App\Models\OrganisationTypes;
+use Illuminate\Support\Facades\DB;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\CompetitionRepositoryInterface;
@@ -41,41 +45,101 @@ class CompetitionController extends Controller
         return response()->json($organizations);
     }
 
+
     public function store(Request $request)
     {
+        // Validate the request data
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'age_group'     => 'required|string|max:100',
-            'coach_name'    => 'required|string|max:100',
-            'country'       => 'required|string|max:100',
-            'city'          => 'required|string|max:100',
-            'start_date'    => 'required|date',
-            'end_date'      => 'required|date|after_or_equal:start_date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time'   => 'required|date_format:H:i|after:start_time',
-            'time_allowed'  => 'required|numeric|min:1',
-            'description'   => 'nullable|string',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'genz' => 'required|in:motherfits,fatherfits',
-            'org_type' => 'required|exists:organisation_types,id', // Validate
-            'org' => 'required|exists:organisations,id', // Validate
-            'genz'         => 'required|in:motherfits,fatherfits',
+            'name' => 'required|string|max:255',
+            'age_group' => 'required|numeric|min:1',
+            'genz' => 'required|in:motherfits,fatherfits,both',
+            'country' => 'required|string|max:100',
+            'org_type' => 'nullable|exists:organisation_types,id',
+            'org' => 'nullable|exists:organisations,id',
+            'time_allowed' => 'nullable|numeric|min:1',
+            'coach_name' => 'required|array|min:1',
+            'coach_name.*' => 'required|string|max:100',
+            'cities' => 'required|array|min:1',
+            'cities.*' => 'required|string|max:100',
+            'start_date' => 'nullable|array',
+            'start_date.*' => 'nullable|date',
+            'end_date' => 'nullable|array',
+            'end_date.*' => 'nullable|date',
+            'start_time' => 'nullable|array',
+            'start_time.*' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|array',
+            'end_time.*' => 'nullable|date_format:H:i',
+            'image' => 'nullable|array',
+            'image.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'nullable|array',
+            'description.*' => 'nullable|string',
         ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/competitions'), $filename);
-            $validated['image'] = 'uploads/competitions/' . $filename;
+        // Custom validation for end_date and end_time
+        foreach ($validated['cities'] as $index => $city) {
+            if (
+                isset($validated['start_date'][$index], $validated['end_date'][$index]) &&
+                $validated['start_date'][$index] && $validated['end_date'][$index] &&
+                strtotime($validated['end_date'][$index]) < strtotime($validated['start_date'][$index])
+            ) {
+                return back()->withErrors(['end_date.' . $index => 'End date must be on or after start date.']);
+            }
+            if (
+                isset($validated['start_date'][$index], $validated['end_date'][$index], $validated['start_time'][$index], $validated['end_time'][$index]) &&
+                $validated['start_date'][$index] == $validated['end_date'][$index] &&
+                $validated['start_time'][$index] && $validated['end_time'][$index] &&
+                strtotime($validated['end_time'][$index]) <= strtotime($validated['start_time'][$index])
+            ) {
+                return back()->withErrors(['end_time.' . $index => 'End time must be after start time.']);
+            }
         }
 
-        $validated['genz'] = $request->input('genz');
+        // Begin database transaction
+        DB::beginTransaction();
+        try {
+            // Create a single competition record
+            $competitionData = [
+                'name' => $validated['name'],
+                'age_group' => $validated['age_group'],
+                'genz' => $validated['genz'],
+                'country' => $validated['country'],
+                'time_allowed' => $validated['time_allowed'] ?? null,
+                'org_type' => $validated['org_type'] ?? null,
+                'org' => $validated['org'] ?? null,
+                'status' => 'active',
+            ];
 
-        $this->competitionOption->store_competition($validated);
+            $competition = Competition::create($competitionData);
 
-        Toastr::success('Competition created successfully', 'Success');
-        return redirect()->route('competitions.index');
+            // Create competition details for each set
+            foreach ($validated['coach_name'] as $index => $coach_name) {
+                $detailData = [
+                    'competition_id' => $competition->id,
+                    'coach_name' => $coach_name,
+                    'city' => $validated['cities'][$index] ?? null,
+                    'start_date' => $validated['start_date'][$index] ?? null,
+                    'end_date' => $validated['end_date'][$index] ?? null,
+                    'start_time' => $validated['start_time'][$index] ?? null,
+                    'end_time' => $validated['end_time'][$index] ?? null,
+                    'description' => $validated['description'][$index] ?? null,
+                ];
+
+                // Handle image upload
+                if (isset($request->file('image')[$index]) && $request->file('image')[$index]) {
+                    $detailData['image'] = $request->file('image')[$index]->store('competitionDetails', 'public');
+                }
+
+                CompetitionDetail::create($detailData);
+            }
+
+            DB::commit();
+            Toastr::success('Competition and details created successfully', 'Success');
+            return redirect()->route('competitions.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Toastr::error('Failed to create competition: ' . $e->getMessage(), 'Error');
+            return back()->withErrors(['error' => 'Failed to create competition.']);
+        }
     }
 
 
@@ -85,13 +149,43 @@ class CompetitionController extends Controller
         $organizationTypes = OrganisationTypes::all();
 
         $competition = $this->competitionOption->get_competition($id);
-        return view('competitions.edit', compact('competition','organizations','organizationTypes'));
+        return view('competitions.edit', compact('competition', 'organizations', 'organizationTypes'));
     }
 
     public function show(string $id)
     {
+        // $competition = $this->competitionOption->view_competition($id);
+        // $exercises = Exercise::where('genz', $competition->genz)->get();
+        $competitionDetail = CompetitionDetail::where('competition_id', $id)->get();
+        return view('competitions.view', compact('competitionDetail', 'id'));
+    }
+
+    public function storeResults(Request $request, string $id)
+    {
         $competition = $this->competitionOption->view_competition($id);
-        return view('competitions.view', compact('competition'));
+        $exercises = Exercise::where('genz', $competition->genz)->pluck('id')->toArray();
+
+        $validated = $request->validate([
+            'results' => 'required|array',
+            'results.*.competition_user_id' => 'required|exists:competition_users,id',
+            'results.*.exercise_id' => 'required|in:' . implode(',', $exercises),
+            'results.*.score' => 'required|numeric|min:0',
+        ]);
+
+        foreach ($validated['results'] as $result) {
+            CompetitionResult::updateOrCreate(
+                [
+                    'competition_user_id' => $result['competition_user_id'],
+                    'exercise_id' => $result['exercise_id'],
+                ],
+                [
+                    'score' => $result['score'],
+                ]
+            );
+        }
+
+        Toastr::success('Results saved successfully', 'Success');
+        return redirect()->route('competitions.show', $id);
     }
 
     public function update(Request $request, string $id)
@@ -99,37 +193,18 @@ class CompetitionController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'age_group'     => 'required|string|max:255',
-            'coach_name'    => 'required|string|max:255',
             'country'       => 'required|string|max:255',
-            'city'          => 'required|string|max:255',
-            'start_date'    => 'required|date',
-            'end_date'      => 'required|date|after_or_equal:start_date',
-            'start_time'    => 'required|date_format:H:i',
-            'end_time'      => 'required|date_format:H:i|after:start_time',
-            'time_allowed'  => 'required|integer|min:1',
+            'time_allowed'  => 'nullable|integer|min:1',
             'status'        => 'nullable|in:active,inactive',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'description'   => 'nullable|string',
-            'org_type' => 'required|exists:organisation_types,id', // Validate
-            'org' => 'required|exists:organisations,id', // Validate
-            'genz'         => 'required|in:motherfits,fatherfits',
+            'org_type' => 'nullable|exists:organisation_types,id', // Validate
+            'org' => 'nullable|exists:organisations,id', // Validate
+            'youtube_links.*' => 'nullable|url'
         ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image before saving new one
-            $competition = $this->competitionOption->get_competition($id);
-            if ($competition->image && Storage::disk('public')->exists($competition->image)) {
-                Storage::disk('public')->delete($competition->image);
-            }
+        $youtubeLinks = $request->youtube_links ?? [];
+        unset($validated['youtube_links']);
 
-            $imagePath = $request->file('image')->store('competitions', 'public');
-            $validated['image'] = $imagePath;
-        }
-
-        $videos = $request->hasFile('videos') ? $request->file('videos') : null;
-
-        $this->competitionOption->update_competition($id, $validated, $videos);
+        $this->competitionOption->update_competition($id, $validated, $youtubeLinks);
 
         Toastr::success('Competition updated successfully', 'Success');
         return redirect()->route('competitions.index');
@@ -177,6 +252,12 @@ class CompetitionController extends Controller
     {
         $videos = CompetitionVideo::all();
         return view('competitions.videos', compact('videos'));
+    }
+
+     public function competitionAppeals()
+    {
+        $appeals = CompetitionAppeal::all();
+        return view('competitions.appeals', compact('appeals'));
     }
 
     public function destroyAppeal($id)

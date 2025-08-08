@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('genz');
             $table->longText('description')->nullable();
             $table->string('image')->nullable();
+            $table->string('youtube_link')->nullable();
+            $table->string('video_time')->nullable();
             $table->timestamps();
         });
     }
