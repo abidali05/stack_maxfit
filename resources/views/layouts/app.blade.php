@@ -36,13 +36,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 
 </head>
 
-
-
 <body>
+
+
     <div class="p-0 bg-white container-fluid-xxl position-relative d-flex">
         <!-- Spinner Start -->
         <div id="spinner"
@@ -88,6 +89,33 @@
 
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+    <script>
+        @if (session('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
+
+        @if (session('error'))
+            toastr.error("{{ session('error') }}");
+        @endif
+
+        @if (session('info'))
+            toastr.info("{{ session('info') }}");
+        @endif
+
+        @if (session('warning'))
+            toastr.warning("{{ session('warning') }}");
+        @endif
+
+        @if ($errors->any())
+            toastr.error("{{ $errors->first() }}");
+        @endif
+    </script>
+
 
     <!-- Display Toastr -->
     {!! Toastr::message() !!}

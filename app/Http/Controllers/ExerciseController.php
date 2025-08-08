@@ -46,7 +46,7 @@ class ExerciseController extends Controller
             'exercise_category_id' => 'required|integer',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'video_file' => 'nullable|file|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime,video/x-matroska|max:51200', // max 50MB
+            'video_file' => 'nullable|url'
         ]);
 
         // Handling image upload
@@ -57,19 +57,19 @@ class ExerciseController extends Controller
         }
 
         // Handling video upload and extracting duration
-        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
-            $video = $request->file('video_file');  // Corrected here to reference 'video_file'
-            $videoName = time() . '_' . uniqid() . '.' . $video->getClientOriginalExtension();
-            $videoPath = $video->storeAs('uploads/exercises/videos', $videoName, 'public');
+        // if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+        //     $video = $request->file('video_file');  // Corrected here to reference 'video_file'
+        //     $videoName = time() . '_' . uniqid() . '.' . $video->getClientOriginalExtension();
+        //     $videoPath = $video->storeAs('uploads/exercises/videos', $videoName, 'public');
 
-            // Extracting video duration using getID3
-            $getID3 = new getID3;  // You should have this namespace
-            $videoFile = $getID3->analyze(storage_path('app/public/' . $videoPath));  // Path is relative to storage
-            $duration_seconds = $videoFile['playtime_seconds'];  // Video duration in seconds
+        //     // Extracting video duration using getID3
+        //     $getID3 = new getID3;  // You should have this namespace
+        //     $videoFile = $getID3->analyze(storage_path('app/public/' . $videoPath));  // Path is relative to storage
+        //     $duration_seconds = $videoFile['playtime_seconds'];  // Video duration in seconds
 
-            $validated['video_file'] = $videoPath;
-            $validated['video_time'] = gmdate("H:i:s", $duration_seconds);  // Format as HH:MM:SS
-        }
+        //     $validated['video_file'] = $videoPath;
+        //     $validated['video_time'] = gmdate("H:i:s", $duration_seconds);  // Format as HH:MM:SS
+        // }
 
         // Creating exercise record with validated data
         $this->exe->create_exercise($validated);
@@ -108,7 +108,7 @@ class ExerciseController extends Controller
             'exercise_category_id' => 'required|integer',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'video_file' => 'nullable|file|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime,video/x-matroska|max:51200', // max 50MB
+            'video_file' => 'nullable|url'
         ]);
 
         // Handling Image Upload
@@ -126,29 +126,29 @@ class ExerciseController extends Controller
         }
 
         // Handling Video File Upload
-        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
-            // Delete old video
-            if ($exercise->video_file && Storage::disk('public')->exists($exercise->video_file)) {
-                Storage::disk('public')->delete($exercise->video_file);
-            }
+        // if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+        //     // Delete old video
+        //     if ($exercise->video_file && Storage::disk('public')->exists($exercise->video_file)) {
+        //         Storage::disk('public')->delete($exercise->video_file);
+        //     }
 
-            // Handle new video upload
-            $video = $request->file('video_file');
-            $videoName = time() . '_' . uniqid() . '.' . $video->getClientOriginalExtension();
-            $videoPath = $video->storeAs('uploads/exercises/videos', $videoName, 'public');
+        //     // Handle new video upload
+        //     $video = $request->file('video_file');
+        //     $videoName = time() . '_' . uniqid() . '.' . $video->getClientOriginalExtension();
+        //     $videoPath = $video->storeAs('uploads/exercises/videos', $videoName, 'public');
 
-            // Extract video duration
-            $getID3 = new getID3;  // Using getID3 to analyze video and get duration
-            $videoFile = $getID3->analyze(storage_path('app/public/' . $videoPath));  // Get full path
-            $duration_seconds = $videoFile['playtime_seconds'];  // Video duration in seconds
+        //     // Extract video duration
+        //     $getID3 = new getID3;  // Using getID3 to analyze video and get duration
+        //     $videoFile = $getID3->analyze(storage_path('app/public/' . $videoPath));  // Get full path
+        //     $duration_seconds = $videoFile['playtime_seconds'];  // Video duration in seconds
 
-            // Save video path and duration
-            $validated['video_file'] = $videoPath;
-            $validated['video_time'] = gmdate("H:i:s", $duration_seconds);  // Convert to HH:MM:SS format
-        } else {
-            unset($validated['video_file']); // Remove video field if no new video
-            unset($validated['video_time']); // Remove video_time if no new video
-        }
+        //     // Save video path and duration
+        //     $validated['video_file'] = $videoPath;
+        //     $validated['video_time'] = gmdate("H:i:s", $duration_seconds);  // Convert to HH:MM:SS format
+        // } else {
+        //     unset($validated['video_file']); // Remove video field if no new video
+        //     unset($validated['video_time']); // Remove video_time if no new video
+        // }
 
         // Update the exercise
         $this->exe->update_exercise($exercise->id, $validated);

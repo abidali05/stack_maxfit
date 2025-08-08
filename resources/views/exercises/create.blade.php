@@ -80,14 +80,30 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="video" class="form-label">Video File</label>
-                                <input type="file" class="form-control @error('video') is-invalid @enderror"
-                                    id="video" name="video_file" accept="video/*">
-
-                                @error('video')
-                                    <span class="text-danger">{{ $message }}</span>
+                                <label class="form-label">YouTube Video Links</label>
+                                <div id="youtube-links-wrapper">
+                                    <div class="d-flex mb-2 youtube-link-row">
+                                        <input type="url" class="form-control me-2" name="video_file" placeholder="https://www.youtube.com/watch?v=..."
+                                            required>
+                                    </div>
+                                </div>
+                                @error('video_file')
+                                    <span class="text-danger d-block">{{ $message }}</span>
                                 @enderror
                             </div>
+
+                            {{-- <div class="col-md-6">
+                                <label class="form-label">Video Time</label>
+                                <div id="video_time">
+                                    <div class="d-flex mb-2 youtube-link-row">
+                                        <input type="number" class="form-control me-2" name="video_time" placeholder="30"
+                                            required>
+                                    </div>
+                                </div>
+                                @error('video_time')
+                                    <span class="text-danger d-block">{{ $message }}</span>
+                                @enderror
+                            </div> --}}
 
                         </div>
 

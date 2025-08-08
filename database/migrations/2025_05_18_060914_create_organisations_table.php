@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('exercises', function (Blueprint $table) {
-            $table->string('video_file')->nullable();
+        Schema::create('organisations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('organisation_type_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('exercises', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('organisations');
     }
 };

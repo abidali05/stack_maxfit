@@ -10,7 +10,8 @@
                         <a href="{{ route('competitions.create') }}" class="btn btn-primary">Add New</a>
                     </div>
                     <div class="table-responsive">
-                        <table id="competitions-table" class="table mb-0 align-middle text-start table-bordered datatable" style="table-layout: auto;">
+                        <table id="competitions-table" class="table mb-0 align-middle text-start table-bordered datatable"
+                            style="table-layout: auto;">
                             <thead>
                                 <tr class="text-dark">
                                     <th>S.No</th>
@@ -20,13 +21,13 @@
                                     <th>Org Type</th>
                                     <th>Organization</th>
                                     <th>Country</th>
-                                    <th>City</th>
+                                    {{-- <th>City</th>
                                     <th>Start</th>
-                                    <th>End</th>
+                                    <th>End</th> --}}
                                     <th>Time Allowed (mins)</th>
-                                    <th>Coach</th>
+                                    {{-- <th>Coach</th>
                                     <th>Image</th>
-                                    <th>Description</th>
+                                    <th>Description</th> --}}
                                     <th>Status</th>
                                     <th class="text-end">Action</th>
                                 </tr>
@@ -41,17 +42,17 @@
                                         <td>{{ $competition->organisationType->name ?? 'N/A' }}</td>
                                         <td>{{ $competition->organisation->name ?? 'N/A' }}</td>
                                         <td>{{ $competition->country }}</td>
-                                        <td>{{ $competition->city }}</td>
-                                        <td>
+                                        {{-- <td>{{ $competition->city }}</td> --}}
+                                        {{-- <td>
                                             {{ \Carbon\Carbon::parse($competition->start_date)->format('d M Y') }}<br>
                                             <small>{{ \Carbon\Carbon::parse($competition->start_time)->format('h:i A') }}</small>
                                         </td>
                                         <td>
                                             {{ \Carbon\Carbon::parse($competition->end_date)->format('d M Y') }} {{ \Carbon\Carbon::parse($competition->end_time)->format('h:i A') }}
-                                        </td>
+                                        </td> --}}
                                         <td>{{ $competition->time_allowed }} mins</td>
-                                        <td>{{ $competition->coach_name }}</td>
-                                        <td>
+                                        {{-- <td>{{ $competition->coach_name }}</td> --}}
+                                        {{-- <td>
                                             @if ($competition->image)
                                                 <img src="{{ asset('storage/' . $competition->image) }}"
                                                     alt="Competition Image" width="60">
@@ -61,7 +62,7 @@
                                         </td>
                                         <td>
                                             {{ \Illuminate\Support\Str::limit(strip_tags($competition->description), 50) }}
-                                        </td>
+                                        </td> --}}
                                         <td>
                                             <span
                                                 class="badge bg-{{ $competition->status == 'active' ? 'success' : 'secondary' }}">
@@ -69,13 +70,16 @@
                                             </span>
                                         </td>
                                         <td class="d-flex align-items-end justify-content-end">
-                                            <a href="{{ route('competitions.edit', $competition->id) }}" class="me-2" title="Edit">
+                                            <a href="{{ route('competitions.edit', $competition->id) }}" class="me-2"
+                                                title="Edit">
                                                 <i class="fa fa-edit text-primary"></i>
                                             </a>
-                                            <a href="{{ route('competitions.show', $competition->id) }}" class="me-2" title="View">
+                                            <a href="{{ route('competitions.show', $competition->id) }}" class="me-2"
+                                                title="View">
                                                 <i class="fa fa-eye text-info"></i>
                                             </a>
-                                            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $competition->id }}" title="Delete">
+                                            <a href="#" data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal{{ $competition->id }}" title="Delete">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
                                         </td>
@@ -124,7 +128,8 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <style>
-        #competitions-table th, #competitions-table td {
+        #competitions-table th,
+        #competitions-table td {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

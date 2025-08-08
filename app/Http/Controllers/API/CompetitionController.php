@@ -19,11 +19,56 @@ class CompetitionController extends Controller
 {
     public function getCompetition()
     {
-        $competitions = Competition::with(['videos', 'exercises' => function ($query) {
-            $query->select('id', 'exercise_category_id', 'name', 'genz', 'description', 'image');
-        }])
+        $authId = Auth::id();
+
+        $competitions = Competition::with('videos')
             ->where('status', 'active')
-            ->get();
+            ->get()
+            ->map(function ($competition) use ($authId) {
+                // Load only exercises that match the competition's genz
+                $competition->exercises = Exercise::where('genz', $competition->genz)
+                    ->select('id', 'exercise_category_id', 'name', 'genz', 'description', 'image')
+                    ->get();
+
+                // Add user status for this competition (0 = rejected, 1 = accepted, null = not responded)
+                $competition->status_type = CompetitionUser::where('competition_id', $competition->id)
+                    ->where('user_id', $authId)
+                    ->value('status');
+
+                return $competition;
+            });
+
+        return $this->success([
+            'competitions' => $competitions,
+        ], 'Competitions fetched successfully', 200);
+    }
+
+    public function getCompetitionStatus($status)
+    {
+        $authId = Auth::id();
+
+        $competitions = Competition::with('videos')
+            ->where('status', 'active')
+            ->get()
+            ->filter(function ($competition) use ($authId, $status) {
+                // Only keep competitions where the user has the given status
+                return CompetitionUser::where('competition_id', $competition->id)
+                    ->where('user_id', $authId)
+                    ->where('status', $status)
+                    ->exists();
+            })
+            ->map(function ($competition) use ($authId, $status) {
+                // Load exercises for the same genz
+                $competition->exercises = Exercise::where('genz', $competition->genz)
+                    ->select('id', 'exercise_category_id', 'name', 'genz', 'description', 'image')
+                    ->get();
+
+                // Set status_type (it will always match $status due to filter)
+                $competition->status_type = (string) $status;
+
+                return $competition;
+            })
+            ->values(); // Reset collection keys
 
         return $this->success([
             'competitions' => $competitions,
@@ -54,11 +99,25 @@ class CompetitionController extends Controller
         return $this->success($competition, 'Competition details fetched successfully', 200);
     }
 
+    public function getCompetitionDetail($id)
+    {
+        $competition = Competition::with('videos')
+            ->where('status', 'active')
+            ->findOrFail($id);
+
+        $exercises = Exercise::where('genz', $competition->genz)
+            ->select('id', 'exercise_category_id', 'name', 'genz', 'description', 'image')
+            ->get();
+
+        $competition->exercises = $exercises;
+
+        return $this->success([
+            'competition' => $competition
+        ], 'Competition detail fetched successfully', 200);
+    }
 
     public function acceptOrReject(Request $request, $id)
     {
-        Log::info($request->all());
-
         $competitionUser = CompetitionUser::updateOrCreate(
             [
                 'user_id' => Auth::id(),
