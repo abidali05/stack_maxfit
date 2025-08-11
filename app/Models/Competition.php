@@ -23,6 +23,12 @@ class Competition extends Model
         return $this->hasMany(CompetitionDetail::class);
     }
 
+    public function competitionDetail()
+    {
+        return $this->hasOne(CompetitionDetail::class, 'competition_id');
+    }
+
+
     public function competitionUsers()
     {
         return $this->hasMany(CompetitionUser::class);
@@ -30,7 +36,7 @@ class Competition extends Model
 
     public function exercises()
     {
-        return $this->hasMany(Exercise::class, 'genz', 'genz');
+        return $this->belongsToMany(Exercise::class, 'competition_exercises', 'competition_id', 'exercise_id');
     }
 
     public function organisation()

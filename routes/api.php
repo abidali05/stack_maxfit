@@ -54,14 +54,19 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/plan-questions', PlanQuestionController::class);
     Route::post('/plan-answers', PlanAnswerController::class);
     Route::get('/plans', PlanController::class);
+
     Route::get('/get-competitions', [CompetitionController::class, 'getCompetition']);
-    Route::get('/get-competitions-data/{status}', [CompetitionController::class, 'getCompetitionStatus']);
     Route::get('/competition-detail/{id}', [CompetitionController::class, 'competitionDetail']);
+    Route::get('/get-competitions-data/{status}', [CompetitionController::class, 'getCompetitionStatus']);
     Route::get('/get-competition-detail/{id}', [CompetitionController::class, 'getCompetitionDetail']);
+
     Route::post('/accept-or-reject/{id}', [CompetitionController::class, 'acceptOrReject']);
+
     Route::get('/get-results', [CompetitionController::class, 'getResult']);
-    Route::get('/get-appeal/{id}', [CompetitionController::class, 'getAppeal']);
+
     Route::post('/store-appeal', [CompetitionController::class, 'writeAppeal']);
+    Route::get('/get-appeal/{id}', [CompetitionController::class, 'getAppeal']);
+
     Route::get('/view-result/{id}', [CompetitionController::class, 'viewResult']);
     Route::get('/rules-of-count', [CompetitionController::class, 'RulesOfCount']);
     Route::get('/rules-of-count-detail/{id}', [CompetitionController::class, 'RulesOfCountDetail']);

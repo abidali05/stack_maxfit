@@ -52,7 +52,7 @@ class CompetitionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'age_group' => 'required|numeric|min:1',
-            'genz' => 'required|in:motherfits,fatherfits,both',
+            'genz' => 'required|in:motherfits,fatherfits',
             'country' => 'required|string|max:100',
             'org_type' => 'nullable|exists:organisation_types,id',
             'org' => 'nullable|exists:organisations,id',
@@ -130,6 +130,13 @@ class CompetitionController extends Controller
                 }
 
                 CompetitionDetail::create($detailData);
+
+                // Sync exercises with competition
+                $exerciseIds = Exercise::whereIn('genz', [$validated['genz'], 'both'])
+                    ->pluck('id');
+
+                // Attach exercises once (not inside the foreach)
+                $competition->exercises()->sync($exerciseIds);
             }
 
             DB::commit();
@@ -254,7 +261,7 @@ class CompetitionController extends Controller
         return view('competitions.videos', compact('videos'));
     }
 
-     public function competitionAppeals()
+    public function competitionAppeals()
     {
         $appeals = CompetitionAppeal::all();
         return view('competitions.appeals', compact('appeals'));

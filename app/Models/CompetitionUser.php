@@ -25,6 +25,11 @@ class CompetitionUser extends Model
 
     public function total()
     {
-        return $this->hasOne(CompetitionUserTotal::class);
+        return $this->hasOne(CompetitionUserTotal::class, 'competition_user_id');
+    }
+
+    public function competitionResult()
+    {
+        return $this->hasOne(CompetitionResult::class);
     }
 }
