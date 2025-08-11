@@ -17,4 +17,9 @@ class Exercise extends Model
     {
         return $this->hasMany(Goal::class);
     }
+
+    public function competitions()
+    {
+        return $this->belongsToMany(Competition::class, 'competition_exercises', 'exercise_id', 'competition_id');
+    }
 }

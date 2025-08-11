@@ -12,4 +12,14 @@ class CompetitionResult extends Model
     {
         return $this->belongsTo(CompetitionUser::class);
     }
+
+    public function competition()
+    {
+        return $this->belongsTo(Competition::class);
+    }
+
+    public function exercise()
+    {
+        return $this->belongsTo(Exercise::class);
+    }
 }
