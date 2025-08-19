@@ -85,6 +85,8 @@ Route::middleware('auth:coach')->prefix('coach')->as('coach.')->group(function (
         ->name('competition-users-update');
     Route::put('/competition-result-update/{id}', [ManageCompetitionController::class, 'getCompetitionResultUpdate'])
         ->name('competition-result-update');
+    Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(function () {
@@ -129,6 +131,8 @@ Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(functio
     Route::get('competitions-appeals', [BranchCompetitionController::class, 'competitionAppeals'])->name('competitions.appeals');
     Route::delete('destroy-appeal/{id}', [BranchCompetitionController::class, 'destroyAppeal'])->name('competitions.destroyAppeal');
     Route::put('update-appeal-status/{id}', [BranchCompetitionController::class, 'updateAppealStatus'])->name('competitions.updateAppealStatus');
+    Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 
