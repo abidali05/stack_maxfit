@@ -83,8 +83,13 @@
                 <span class="d-none d-lg-inline-flex">{{ Auth::user()->name }}</span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                <a href="{{ route('profile') }}" class="dropdown-item">My Profile</a>
-                {{-- <a href="#" class="dropdown-item">Settings</a> --}}
+                @if (Auth::guard('coach')->check())
+                    <a href="{{ route('coach.profile') }}" class="dropdown-item">My Profile</a>
+                @elseif(Auth::guard('branch')->check())
+                    <a href="{{ route('branch.profile') }}" class="dropdown-item">My Profile</a>
+                    @else
+                    <a href="{{ route('profile') }}" class="dropdown-item">My Profile</a>
+                @endif
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 

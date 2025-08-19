@@ -50,7 +50,14 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        @include('layouts.sidebar')
+        @if (Auth::guard('branch')->check())
+            @include('layouts.branch.sidebar')
+        @elseif(Auth::guard('coach')->check())
+            @include('layouts.coach.sidebar')
+        @else
+            @include('layouts.sidebar') {{-- default --}}
+        @endif
+
         <!-- Spinner End -->
         <!-- Content Start -->
         <div class="content">
