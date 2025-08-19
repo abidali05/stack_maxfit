@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.branch.app')
 @section('title', 'Competitions')
 @section('content')
     <div class="px-4 pt-4 container-fluid" style="min-height: 82.5vh">
@@ -7,7 +7,7 @@
                 <div class="p-4 text-center rounded bg-light">
                     <div class="mb-4 d-flex align-items-center justify-content-between">
                         <h6 class="mb-0">Competitions</h6>
-                        <a href="{{ route('competitions.create') }}" class="btn btn-primary">Add New</a>
+                        <a href="{{ route('branch.createCompetitions') }}" class="btn btn-primary">Add New</a>
                     </div>
                     <div class="table-responsive">
                         <table id="competitions-table" class="table mb-0 align-middle text-start table-bordered datatable"
@@ -44,11 +44,11 @@
                                             </span>
                                         </td>
                                         <td class="d-flex align-items-end justify-content-end">
-                                            <a href="{{ route('competitions.edit', $competition->id) }}" class="me-2"
+                                            <a href="{{ route('branch.editCompetition', $competition->id) }}" class="me-2"
                                                 title="Edit">
                                                 <i class="fa fa-edit text-primary"></i>
                                             </a>
-                                            <a href="{{ route('competitions.show', $competition->id) }}" class="me-2"
+                                            <a href="{{ route('branch.showCompetition', $competition->id) }}" class="me-2"
                                                 title="View">
                                                 <i class="fa fa-eye text-info"></i>
                                             </a>
@@ -78,7 +78,7 @@
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary"
                                                         data-bs-dismiss="modal">Cancel</button>
-                                                    <form action="{{ route('competitions.destroy', $competition->id) }}"
+                                                    <form action="{{ route('branch.deleteCompetition', $competition->id) }}"
                                                         method="POST">
                                                         @csrf
                                                         @method('DELETE')

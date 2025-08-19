@@ -8,7 +8,7 @@ class CompetitionDetail extends Model
 {
     protected $fillable = [
         'competition_id',
-        'coach_name',
+        'coach_id',
         'city',
         'start_date',
         'end_date',
@@ -26,5 +26,10 @@ class CompetitionDetail extends Model
     public function competitionUsers()
     {
         return $this->hasMany(CompetitionUser::class, 'competition_detail_id');
+    }
+
+    public function coach()
+    {
+        return $this->belongsTo(Coach::class, 'coach_id');
     }
 }

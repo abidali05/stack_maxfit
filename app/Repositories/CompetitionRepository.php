@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Competition;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\CompetitionRepositoryInterface;
 
@@ -18,6 +19,12 @@ class CompetitionRepository implements CompetitionRepositoryInterface
     public function get_competitions()
     {
         return $this->model::with(['details', 'organisationType', 'organisation'])->get();
+    }
+
+    public function get_branch_competitions()
+    {
+        return $this->model::where('user_id', Auth::guard('branch')->user()->id)
+            ->with(['details', 'organisationType', 'organisation'])->get();
     }
 
     public function store_competition(array $data)

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.branch.app')
 @section('title', 'Dashboard')
 @section('content')
     <!-- Sale & Revenue Start -->

@@ -28,7 +28,6 @@ class Competition extends Model
         return $this->hasOne(CompetitionDetail::class, 'competition_id');
     }
 
-
     public function competitionUsers()
     {
         return $this->hasMany(CompetitionUser::class);

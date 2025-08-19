@@ -41,7 +41,7 @@
                                             {{ \Carbon\Carbon::parse($competition->end_date)->format('d M Y') }}
                                             {{ \Carbon\Carbon::parse($competition->end_time)->format('h:i A') }}
                                         </td>
-                                        <td>{{ $competition->coach_name }}</td>
+                                        <td>{{ $competition->coach?->name }}</td>
                                         <td>
                                             @if ($competition->image)
                                                 <img src="{{ asset('storage/' . $competition->image) }}"

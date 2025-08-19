@@ -50,7 +50,7 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        @include('layouts.sidebar')
+        @include('layouts.coach.sidebar')
         <!-- Spinner End -->
         <!-- Content Start -->
         <div class="content">
