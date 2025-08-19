@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.branch.app')
 @section('title', 'Create Competitions')
 @section('content')
     <div class="px-4 pt-4 container-fluid" style="min-height: 82.5vh">
-        <form action="{{ route('competitions.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('branch.storeCompetitions') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="row g-4">
                 <div class="col-lg-12">
@@ -269,7 +269,7 @@
                 orgSelect.innerHTML = '<option value="">Select</option>';
 
                 if (orgTypeId) {
-                    fetch(`/get-organizations/${orgTypeId}`, {
+                    fetch(`/branch/get-organizations/${orgTypeId}`, {
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
                                     'content')

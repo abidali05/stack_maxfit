@@ -20,19 +20,19 @@
                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
             </a>
 
-            <a href="{{ route('users.index') }}" class="nav-item nav-link {{ Route::is('users.*') ? 'active' : '' }}">
+            {{-- <a href="{{ route('users.index') }}" class="nav-item nav-link {{ Route::is('users.*') ? 'active' : '' }}">
                 <i class="fas fa-user-friends me-2"></i>Users
-            </a>
+            </a> --}}
 
-            <a href="{{ route('branches.index') }}" class="nav-item nav-link">
+            {{-- <a href="{{ route('coaches.index') }}" class="nav-item nav-link">
                 <i class="fas fa-code-branch me-2"></i>Branches
-            </a>
+            </a> --}}
 
-            <a href="{{ route('coaches.index') }}" class="nav-item nav-link {{ Route::is('coaches.*') ? 'active' : '' }}">
+            {{-- <a href="{{ route('coaches.index') }}" class="nav-item nav-link {{ Route::is('coaches.*') ? 'active' : '' }}">
                 <i class="fas fa-running me-2"></i>Coaches
-            </a>
+            </a> --}}
 
-            <div class="nav-item dropdown">
+            {{-- <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle {{ Route::is('organisation-types.*') || Route::is('organisations.*') ? 'active' : '' }}" data-bs-toggle="dropdown">
                     <i class="fas fa-sitemap me-2"></i>Organisations
                 </a>
@@ -44,9 +44,9 @@
                         <i class="fas fa-building me-2"></i>Organisations
                     </a>
                 </div>
-            </div>
+            </div> --}}
 
-            <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">
+            {{-- <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">
                 <i class="fas fa-file-medical me-2"></i>Medical Assessment
             </a>
 
@@ -66,38 +66,32 @@
                         <i class="fas fa-tags me-2"></i>Categories
                     </a>
                 </div>
-            </div>
+            </div> --}}
 
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle {{ Route::is('competitions.*') || Route::is('competition-users.*') || Route::is('competition-details.*') || Route::is('results.*') ? 'active' : '' }}" data-bs-toggle="dropdown">
                     <i class="fas fa-trophy me-2"></i>Competitions
                 </a>
                 <div class="bg-transparent border-0 dropdown-menu">
-                    <a href="{{ route('competitions.index') }}" class="nav-item nav-link {{ Route::is('competitions.index') || Route::is('competitions.create') || Route::is('competitions.edit') || Route::is('competitions.show') ? 'active' : '' }}">
+                    <a href="{{ route('coach.competition-details') }}" class="nav-item nav-link {{ Route::is('competitions.index') || Route::is('competitions.create') || Route::is('competitions.edit') || Route::is('competitions.show') ? 'active' : '' }}">
                         <i class="fas fa-trophy me-2"></i>Competitions
                     </a>
-                    <a href="{{ route('competitions.videos') }}" class="nav-item nav-link {{ Route::is('competitions.videos') ? 'active' : '' }}">
+                    {{-- <a href="{{ route('coach.competitions.videos') }}" class="nav-item nav-link {{ Route::is('competitions.videos') ? 'active' : '' }}">
                         <i class="fas fa-video me-2"></i>Videos
                     </a>
-                    {{-- <a href="#" class="nav-item nav-link">
-                        <i class="fas fa-medal me-2"></i>Results
-                    </a>
-                    <a href="#" class="nav-item nav-link">
-                        <i class="fas fa-star-half-alt me-2"></i>Scores & Rankings
-                    </a> --}}
-                    <a href="{{ route('competitions.appeals') }}" class="nav-item nav-link {{ Route::is('competitions.appeals') ? 'active' : '' }}">
+                    <a href="{{ route('coach.competitions.appeals') }}" class="nav-item nav-link {{ Route::is('competitions.appeals') ? 'active' : '' }}">
                         <i class="fas fa-gavel me-2"></i>Appeals
-                    </a>
+                    </a> --}}
                 </div>
             </div>
 
-            <a href="{{ route('plans.index') }}" class="nav-item nav-link {{ Route::is('plans.*') ? 'active' : '' }}">
+            {{-- <a href="{{ route('plans.index') }}" class="nav-item nav-link {{ Route::is('plans.*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard-list me-2"></i>Plans
             </a>
 
             <a href="{{ route('rulesof-counting.index') }}" class="nav-item nav-link {{ Route::is('rulesof-counting.*') ? 'active' : '' }}">
                 <i class="fas fa-calculator me-2"></i>Rules of Counting
-            </a>
+            </a> --}}
         </div>
     </nav>
 </div>

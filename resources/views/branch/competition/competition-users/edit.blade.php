@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.branch.app')
 @section('title', 'Edit Competition Detail')
 @section('content')
     <div class="container-fluid pt-4 px-4">
@@ -6,7 +6,7 @@
             <div class="col-12">
                 <div class="bg-light rounded p-4">
                     <h4>Edit Competition Detail</h4>
-                    <form action="{{ route('competition-details.update', $competitionDetail->id) }}" method="POST"
+                    <form action="{{ route('branch.competition-users.update', $competitionDetail->id) }}" method="POST"
                         enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
@@ -70,7 +70,6 @@
                             <textarea name="description" class="form-control">{{ $competitionDetail->description }}</textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Update</button>
-                        <a href="{{ route('competition-details.index') }}" class="btn btn-secondary">Cancel</a>
                     </form>
                     {{-- <form action="{{ route('competition-details.destroy', $competitionDetail->id) }}" method="POST" class="mt-3">
                     @csrf

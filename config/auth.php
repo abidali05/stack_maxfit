@@ -48,6 +48,14 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+        'coach' => [
+            'driver' => 'session',
+            'provider' => 'coaches',
+        ],
+        'branch' => [
+            'driver' => 'session',
+            'provider' => 'branches',
+        ],
     ],
 
     /*
@@ -71,6 +79,16 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'coaches' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Coach::class,
+        ],
+
+        'branches' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Branch::class,
         ],
 
         // 'users' => [

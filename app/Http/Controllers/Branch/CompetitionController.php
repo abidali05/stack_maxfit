@@ -1,19 +1,23 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Branch;
 
 use App\Models\Coach;
 use App\Models\Exercise;
 use App\Models\Competition;
 use Illuminate\Http\Request;
 use App\Models\Organisations;
+use App\Models\CompetitionUser;
 use App\Models\CompetitionVideo;
 use App\Models\CompetitionAppeal;
 use App\Models\CompetitionDetail;
 use App\Models\CompetitionResult;
 use App\Models\OrganisationTypes;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\CompetitionUserTotal;
 use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\CompetitionRepositoryInterface;
 
@@ -26,19 +30,19 @@ class CompetitionController extends Controller
         $this->competitionOption = $competitionOption;
     }
 
-    public function index()
+    public function getCompetitions()
     {
-        $competitions = $this->competitionOption->get_competitions();
-        return view('competitions.index', compact('competitions'));
+        $competitions = $this->competitionOption->get_branch_competitions();
+        return view('branch.competition.index', compact('competitions'));
     }
 
-    public function create()
+    public function createCompetitions()
     {
         $organizations = Organisations::all();
         $organizationTypes = OrganisationTypes::all();
         $coaches = Coach::all();
 
-        return view('competitions.create', compact('organizations', 'organizationTypes','coaches'));
+        return view('branch.competition.create', compact('organizations', 'organizationTypes', 'coaches'));
     }
 
     public function getOrganizationsByType($org_type_id)
@@ -48,7 +52,7 @@ class CompetitionController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function storeCompetitions(Request $request)
     {
         // Validate the request data
         $validated = $request->validate([
@@ -101,6 +105,7 @@ class CompetitionController extends Controller
         try {
             // Create a single competition record
             $competitionData = [
+                'user_id' => Auth::guard('branch')->user()->id,
                 'name' => $validated['name'],
                 'age_group' => $validated['age_group'],
                 'genz' => $validated['genz'],
@@ -143,7 +148,7 @@ class CompetitionController extends Controller
 
             DB::commit();
             Toastr::success('Competition and details created successfully', 'Success');
-            return redirect()->route('competitions.index');
+            return redirect()->route('branch.getCompetitions');
         } catch (\Exception $e) {
             DB::rollBack();
             Toastr::error('Failed to create competition: ' . $e->getMessage(), 'Error');
@@ -151,51 +156,22 @@ class CompetitionController extends Controller
         }
     }
 
+    public function showCompetition(string $id)
+    {
+        $competitionDetail = CompetitionDetail::where('competition_id', $id)->with('coach')->get();
+        return view('branch.competition.view', compact('competitionDetail', 'id'));
+    }
 
-    public function edit(string $id)
+    public function editCompetition(string $id)
     {
         $organizations = Organisations::all();
         $organizationTypes = OrganisationTypes::all();
 
         $competition = $this->competitionOption->get_competition($id);
-        return view('competitions.edit', compact('competition', 'organizations', 'organizationTypes'));
+        return view('branch.competition.edit', compact('competition', 'organizations', 'organizationTypes'));
     }
 
-    public function show(string $id)
-    {
-        $competitionDetail = CompetitionDetail::where('competition_id', $id)->with('coach')->get();
-        return view('competitions.view', compact('competitionDetail', 'id'));
-    }
-
-    public function storeResults(Request $request, string $id)
-    {
-        $competition = $this->competitionOption->view_competition($id);
-        $exercises = Exercise::where('genz', $competition->genz)->pluck('id')->toArray();
-
-        $validated = $request->validate([
-            'results' => 'required|array',
-            'results.*.competition_user_id' => 'required|exists:competition_users,id',
-            'results.*.exercise_id' => 'required|in:' . implode(',', $exercises),
-            'results.*.score' => 'required|numeric|min:0',
-        ]);
-
-        foreach ($validated['results'] as $result) {
-            CompetitionResult::updateOrCreate(
-                [
-                    'competition_user_id' => $result['competition_user_id'],
-                    'exercise_id' => $result['exercise_id'],
-                ],
-                [
-                    'score' => $result['score'],
-                ]
-            );
-        }
-
-        Toastr::success('Results saved successfully', 'Success');
-        return redirect()->route('competitions.show', $id);
-    }
-
-    public function update(Request $request, string $id)
+    public function updateCompetition(Request $request, $id)
     {
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
@@ -214,11 +190,11 @@ class CompetitionController extends Controller
         $this->competitionOption->update_competition($id, $validated, $youtubeLinks);
 
         Toastr::success('Competition updated successfully', 'Success');
-        return redirect()->route('competitions.index');
+        return redirect()->route('branch.getCompetitions');
     }
 
 
-    public function destroy(string $id)
+    public function deleteCompetition(string $id)
     {
         $competition = $this->competitionOption->get_competition($id);
 
@@ -239,32 +215,117 @@ class CompetitionController extends Controller
         $this->competitionOption->delete_competition($id);
 
         Toastr::success('Competition deleted successfully', 'Success');
-        return redirect()->route('competitions.index');
+        return redirect()->route('branch.getCompetitions');
     }
 
-    public function appeals()
+    public function getCompetitionDetail()
     {
-        $appeals = CompetitionAppeal::with('competitionVideo.competition', 'user')
-            ->get();
-        return view('competitions.appeals', compact('appeals'));
+        $competitionDetails = CompetitionDetail::get();
+        return view('coach.competition-list', compact('competitionDetails'));
     }
 
-    public function appealDetails(string $id)
+    public function getCompetitionDetailUser($id)
     {
-        $competition = $this->competitionOption->get_competition($id);
-        return view('competitions.appeal_details', compact('competition'));
+        $competition = CompetitionDetail::with('competitionUsers.user')->findOrFail($id);
+
+        return view('coach.competition-list-user', compact('competition'));
+    }
+
+    public function getCompetitionDetailUserUpdate($id)
+    {
+        $competitionUser = CompetitionUser::with(['user', 'competitionDetail.competition'])->findOrFail($id);
+
+        // Get all exercises for this competition
+        $competition = $competitionUser->competitionDetail->competition;
+        $exercises = $competition->exercises; // via competition_exercises
+
+        // Get existing scores
+        $results = CompetitionResult::where('competition_user_id', $competitionUser->id)->get()->keyBy('exercise_id');
+
+        return view('branch.competition-users-edit', compact('competitionUser', 'exercises', 'results'));
+    }
+
+    public function getCompetitionResultUpdate(Request $request, $id)
+    {
+        $competitionUser = CompetitionUser::findOrFail($id);
+
+        $scores = $request->input('scores'); // array: exercise_id => score
+
+        $totalScore = 0;
+
+        foreach ($scores as $exerciseId => $score) {
+            CompetitionResult::updateOrCreate(
+                [
+                    'competition_user_id' => $competitionUser->id,
+                    'exercise_id' => $exerciseId
+                ],
+                ['score' => $score]
+            );
+
+            $totalScore += floatval($score);
+        }
+
+        // Save or update total score
+        CompetitionUserTotal::updateOrCreate(
+            ['competition_user_id' => $competitionUser->id],
+            ['total_score' => $totalScore]
+        );
+
+        return redirect()->back()->with('success', 'Scores updated!');
+    }
+
+    public function editCompetitionResultUpdate($id)
+    {
+        $competitionDetail = CompetitionDetail::findOrFail($id);
+        $coaches = Coach::all();
+
+        return view('branch.competition.competition-users.edit', compact('competitionDetail', 'coaches'));
+    }
+
+    public function updateCompetitionResultUpdate(Request $request, $id)
+    {
+        $CompetitionDetail = CompetitionDetail::findOrFail($id);
+        $validated = $request->validate([
+            'coach_id' => 'required|string|max:100',
+            'city' => 'required|string|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('competitionDetails', 'public');
+        }
+
+        $competitionId = $request->competition_id;
+
+        $CompetitionDetail->update($validated);
+        return redirect()->back()->with('success', 'Competition detail updated successfully.');
     }
 
     public function competitionVideos()
     {
-        $videos = CompetitionVideo::all();
-        return view('competitions.videos', compact('videos'));
+        $authId = Auth::guard('branch')->user()->id;
+
+        $videos = CompetitionVideo::whereHas('competition', function ($query) use ($authId) {
+            $query->where('user_id', $authId);
+        })->get();
+
+        return view('branch.competition.videos', compact('videos'));
     }
 
     public function competitionAppeals()
     {
-        $appeals = CompetitionAppeal::all();
-        return view('competitions.appeals', compact('appeals'));
+        $authId = Auth::id();
+
+        $appeals = CompetitionAppeal::whereHas('competitionVideo.competition', function ($query) use ($authId) {
+            $query->where('user_id', $authId);
+        })->get();
+
+        return view('branch.competition.appeals', compact('appeals'));
     }
 
     public function destroyAppeal($id)
