@@ -31,7 +31,7 @@
                                         <td>{{ $cu->status ?? 'Pending' }}</td>
                                         <td>{{ $cu->total->rank ?? '-' }}</td>
                                         <td>
-                                            <a href="{{ route('branch.competition-users-update', $cu->id) }}"
+                                            <a href="{{ route('coach.competition-users-update', $cu->id) }}"
                                                 class="btn btn-sm btn-primary">Update</a>
                                         </td>
                                     </tr>

@@ -7,7 +7,7 @@
                 <div class="p-4 text-center rounded bg-light">
                     <div class="mb-4 d-flex align-items-center justify-content-between">
                         <h6 class="mb-0">Competition Details</h6>
-                        <form action="{{ route('competitions.generate-results', $id) }}" method="POST"
+                        <form action="{{ route('branch.competitions.generate-results', $id) }}" method="POST"
                             onsubmit="return confirm('Are you sure you want to generate results and ranks?');">
                             @csrf
                             <button type="submit" class="btn btn-success">Generate Final Results</button>

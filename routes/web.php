@@ -92,7 +92,7 @@ Route::middleware('auth:coach')->prefix('coach')->as('coach.')->group(function (
 Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(function () {
     Route::get('/dashboard', function () {
         return view('branch.dashboard');
-    })->name('branch.dashboard');
+    })->name('dashboard');
     Route::get('coaches', [CoachController::class, 'index'])->name('getCoaches');
     Route::get('competetions', [BranchCompetitionController::class, 'getCompetitions'])
         ->name('getCompetitions');
@@ -131,6 +131,8 @@ Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(functio
     Route::get('competitions-appeals', [BranchCompetitionController::class, 'competitionAppeals'])->name('competitions.appeals');
     Route::delete('destroy-appeal/{id}', [BranchCompetitionController::class, 'destroyAppeal'])->name('competitions.destroyAppeal');
     Route::put('update-appeal-status/{id}', [BranchCompetitionController::class, 'updateAppealStatus'])->name('competitions.updateAppealStatus');
+        Route::post('/competitions/{id}/generate-results', [CompetitionUserController::class, 'generateResults'])->name('competitions.generate-results');
+
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
