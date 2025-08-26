@@ -9,7 +9,8 @@
                         <h6 class="mb-0">Competition Details</h6>
                     </div>
                     <div class="table-responsive">
-                        <table class="table">
+                         <table id="competitions-table" class="table mb-0 align-middle text-start table-bordered datatable"
+                            style="table-layout: auto;">
                             <thead>
                                 <tr>
                                     <th>#</th>

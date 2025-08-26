@@ -19,9 +19,24 @@ class Branch extends Authenticatable
         'image',
         'bio',
         'status',
+        'address',
+        'percentage',
+        'country_id',
+        'city_id',
     ];
+
 
     protected $hidden = [
         'password',
     ];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
 }

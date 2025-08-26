@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\City;
 use App\Models\Coach;
+use App\Models\Country;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +25,9 @@ class CoachController extends Controller
      */
     public function create()
     {
-        return view('coaches.create');
+        $countries = Country::all();
+        $cities = City::all();
+        return view('coaches.create', compact('countries', 'cities'));
     }
 
     /**
@@ -31,22 +35,33 @@ class CoachController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:coaches,email',
-            'phone' => 'nullable|string|max:20',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'bio' => 'nullable|string',
-        ]);
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('coaches', 'public');
+        try {
+            $validated = $request->validate([
+                'name'       => 'required|string|max:255',
+                'email'      => 'required|email|unique:coaches,email',
+                'phone'      => 'required|string|max:20',
+                'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'bio'        => 'nullable|string',
+                'address'    => 'required|string|max:255',
+                'country_id' => 'required|exists:countries,id',
+                'city_id'    => 'required|exists:cities,id',
+            ]);
+
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('coaches', 'public');
+            }
+
+            // default password
+            $validated['password'] = Hash::make('password');
+
+            Coach::create($validated);
+
+            return redirect()->route('coaches.index')->with('success', 'Coach created successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-
-        $validated['password'] = Hash::make('password');
-
-        Coach::create($validated);
-        return redirect()->route('coaches.index')->with('success', 'Coach created successfully.');
     }
+
 
     /**
      * Display the specified resource.
@@ -62,7 +77,9 @@ class CoachController extends Controller
     public function edit($id)
     {
         $coach = Coach::findOrFail($id);
-        return view('coaches.edit', compact('coach'));
+        $countries = Country::all();
+        $cities = City::all();
+        return view('coaches.edit', compact('coach', 'countries', 'cities'));
     }
 
     /**
@@ -70,29 +87,43 @@ class CoachController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $coach = Coach::findOrFail($id);
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:coaches,email,' . $coach->id,
-            'phone' => 'nullable|string|max:20',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'bio' => 'nullable|string',
-        ]);
-        if ($request->hasFile('image')) {
-            // delete old image if exists
-            if ($coach->image && Storage::disk('public')->exists($coach->image)) {
-                Storage::disk('public')->delete($coach->image);
+        try {
+            $coach = Coach::findOrFail($id);
+
+            $validated = $request->validate([
+                'name'       => 'required|string|max:255',
+                'email'      => 'required|email|unique:coaches,email,' . $coach->id,
+                'phone'      => 'nullable|string|max:20',
+                'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'bio'        => 'nullable|string',
+                'address'    => 'nullable|string|max:255',
+                'country_id' => 'required|exists:countries,id',
+                'city_id'    => 'required|exists:cities,id',
+            ]);
+
+            if ($request->hasFile('image')) {
+                // delete old image if exists
+                if ($coach->image && Storage::disk('public')->exists($coach->image)) {
+                    Storage::disk('public')->delete($coach->image);
+                }
+                $validated['image'] = $request->file('image')->store('coaches', 'public');
+            } else {
+                $validated['image'] = $coach->image;
             }
-            $validated['image'] = $request->file('image')->store('coaches', 'public');
-        } else {
-            $validated['image'] = $coach->image;
+
+            // Keep existing password instead of resetting on update
+            $validated['password'] = $coach->password;
+
+            $coach->update($validated);
+
+            return redirect()->route('coaches.index')->with('success', 'Coach updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage())->withInput();
         }
-
-        $validated['password'] = Hash::make('password');
-
-        $coach->update($validated);
-        return redirect()->route('coaches.index')->with('success', 'Coach updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

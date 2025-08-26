@@ -49,8 +49,8 @@
                                                 <i class="fa fa-edit text-primary"></i>
                                             </a>
                                             <a href="{{ route('competitions.show', $competition->id) }}" class="me-2"
-                                                title="View">
-                                                <i class="fa fa-eye text-info"></i>
+                                                title="Detail">
+                                                <i class="fa fa-info-circle text-info"></i>
                                             </a>
                                             <a href="#" data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal{{ $competition->id }}" title="Delete">

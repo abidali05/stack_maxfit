@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\City;
+use App\Models\Country;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Constraint\Count;
 
 class BranchController extends Controller
 {
@@ -23,7 +26,9 @@ class BranchController extends Controller
      */
     public function create()
     {
-        return view('branches.create');
+        $country = Country::all();
+        $cities = City::all();
+        return view('branches.create', compact('country', 'cities'));
     }
 
     /**
@@ -31,49 +36,74 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:branches,email',
-            'phone' => 'nullable|string|max:20',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'bio' => 'nullable|string',
-        ]);
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('branches', 'public');
+        try {
+            $validated = $request->validate([
+                'name'        => 'required|string|max:255',
+                'email'       => 'required|email|unique:branches,email',
+                'phone'       => 'required|string|max:20',
+                'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'bio'         => 'nullable|string',
+                'address'     => 'required|string|max:255',
+                'country_id'  => 'required|exists:countries,id',
+                'city_id'     => 'required|exists:cities,id',
+                'status'      => 'nullable|in:active,inactive',
+                'percentage'  => 'required|numeric|min:0|max:100', // new field
+            ]);
+
+            // handle image
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('branches', 'public');
+            }
+
+            // default password
+            $validated['password'] = Hash::make('password');
+
+            Branch::create($validated);
+
+            return redirect()
+                ->route('branches.index')
+                ->with('success', 'Branch created successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create branch. ' . $e->getMessage());
         }
-
-        $validated['password'] = Hash::make('password');
-
-        Branch::create($validated);
-        return redirect()->route('branches.index')->with('success', 'Branch created successfully.');
     }
+
+
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit($id)
     {
-        $branch = Branch::findOrFail($id);
-        return view('branches.edit', compact('branch'));
+        $branch   = Branch::findOrFail($id);
+        $countries = Country::all();
+        $cities    = City::all();
+
+        return view('branches.edit', compact('branch', 'countries', 'cities'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $branch = Branch::findOrFail($id);
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:branches,email,' . $branch->id,
-            'phone' => 'nullable|string|max:20',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'bio' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:branches,email,' . $branch->id,
+            'phone'      => 'nullable|string|max:20',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bio'        => 'nullable|string',
+            'address'    => 'nullable|string|max:255',
+            'country_id' => 'required|exists:countries,id',
+            'city_id'    => 'required|exists:cities,id',
+            'status'     => 'required|in:active,inactive',
+            'percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        // handle image
         if ($request->hasFile('image')) {
-            // delete old image if exists
             if ($branch->image && Storage::disk('public')->exists($branch->image)) {
                 Storage::disk('public')->delete($branch->image);
             }
@@ -82,11 +112,16 @@ class BranchController extends Controller
             $validated['image'] = $branch->image;
         }
 
-        $validated['password'] = Hash::make('password');
+        // ⚠️ Don’t reset password on update unless intentional
+        // $validated['password'] = Hash::make('password');
 
         $branch->update($validated);
-        return redirect()->route('branches.index')->with('success', 'Branch updated successfully.');
+
+        return redirect()
+            ->route('branches.index')
+            ->with('success', 'Branch updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

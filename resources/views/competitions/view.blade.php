@@ -58,10 +58,10 @@
                                                 class="me-2" title="View Users">
                                                 <i class="fa fa-users text-success"></i>
                                             </a>
-                                            <a href="{{ route('competition-details.edit', $competition->id) }}"
+                                            {{-- <a href="{{ route('competition-details.edit', $competition->id) }}"
                                                 class="me-2" title="Edit">
                                                 <i class="fa fa-edit text-primary"></i>
-                                            </a>
+                                            </a> --}}
                                             <a href="#" data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal{{ $competition->id }}" title="Delete">
                                                 <i class="fa fa-trash text-danger"></i>

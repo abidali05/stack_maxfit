@@ -45,15 +45,6 @@
                     </a>
                 </div>
             </div>
-
-            <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">
-                <i class="fas fa-file-medical me-2"></i>Medical Assessment
-            </a>
-
-            <a href="{{ route('plan-questions.index') }}" class="nav-item nav-link {{ Route::is('plan-questions.*') ? 'active' : '' }}">
-                <i class="fas fa-question-circle me-2"></i>Plan Questions
-            </a>
-
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle {{ Route::is('exercises.*') || Route::is('exercise-categories.*') ? 'active' : '' }}" data-bs-toggle="dropdown">
                     <i class="fas fa-dumbbell me-2"></i>Exercise
@@ -95,9 +86,17 @@
                 <i class="fas fa-clipboard-list me-2"></i>Plans
             </a>
 
-            <a href="{{ route('rulesof-counting.index') }}" class="nav-item nav-link {{ Route::is('rulesof-counting.*') ? 'active' : '' }}">
-                <i class="fas fa-calculator me-2"></i>Rules of Counting
+            <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">
+                <i class="fas fa-file-medical me-2"></i>Medical Assessment
             </a>
+
+            <a href="{{ route('plan-questions.index') }}" class="nav-item nav-link {{ Route::is('plan-questions.*') ? 'active' : '' }}">
+                <i class="fas fa-question-circle me-2"></i>Plan Questions
+            </a>
+
+            {{-- <a href="{{ route('rulesof-counting.index') }}" class="nav-item nav-link {{ Route::is('rulesof-counting.*') ? 'active' : '' }}">
+                <i class="fas fa-calculator me-2"></i>Rules of Counting
+            </a> --}}
         </div>
     </nav>
 </div>

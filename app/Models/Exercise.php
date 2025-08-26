@@ -22,4 +22,15 @@ class Exercise extends Model
     {
         return $this->belongsToMany(Competition::class, 'competition_exercises', 'exercise_id', 'competition_id');
     }
+
+    public function getGenzAttribute($value)
+    {
+        if (strtolower($value) === 'fatherfits') {
+            return 'Father Fit';
+        } elseif (strtolower($value) === 'motherfits') {
+            return 'Mother Fit';
+        }
+
+        return $value; // return as-is if not matched
+    }
 }

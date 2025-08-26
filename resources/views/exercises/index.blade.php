@@ -31,7 +31,7 @@
                                         <td>{{ $exercise->genz ?? '' }}</td>
                                         <td>{{ $exercise->exercise_category->name ?? '' }}</td>
                                         <td><img src="{{ asset('storage/'.$exercise->image) ?? asset('assets/images/user.jpg') }}" alt="User Image" class="rounded-circle" width="50" height="50"></td>
-                                        <td>{{ $exercise->video_file ?? '' }}</td>
+                                        <td>{{ $exercise->youtube_link ?? '' }}</td>
                                         <td class="d-flex align-items-end justify-content-end vertical-align-middle">
                                             <a href="{{ route('exercises.edit', $exercise->id) }}" class="me-2"> <i
                                                     class="fa fa-edit"></i> </a>
