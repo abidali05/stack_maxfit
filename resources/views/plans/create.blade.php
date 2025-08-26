@@ -33,7 +33,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Price (UGX)</label>
+                                <label class="form-label">Price (PKR)</label>
                                 <input type="number" class="form-control" name="price" step="0.01" min="0" required>
                                 @error('price')
                                     <span class="text-danger">{{ $message }}</span>

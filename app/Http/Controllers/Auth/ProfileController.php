@@ -33,7 +33,7 @@ class ProfileController extends Controller
                 'name' => 'required|string|max:255',
                 'number' => 'required|string|unique:branches,phone,' . auth('branch')->id(),
                 'password' => 'nullable|string|min:6|confirmed|regex:/[^A-Za-z0-9]/',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'email' => 'required|email|max:255|unique:branches,email,' . auth('branch')->id(),
             ]);
 
@@ -44,7 +44,7 @@ class ProfileController extends Controller
                 'name' => 'required|string|max:255',
                 'number' => 'required|string|unique:coaches,phone,' . auth('coach')->id(),
                 'password' => 'nullable|string|min:6|confirmed|regex:/[^A-Za-z0-9]/',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'email' => 'required|email|max:255|unique:coaches,email,' . auth('coach')->id(),
             ]);
 
@@ -55,7 +55,7 @@ class ProfileController extends Controller
                 'name' => 'required|string|max:255',
                 'number' => 'required|string|unique:users,number,' . auth()->id(),
                 'password' => 'nullable|string|min:6|confirmed|regex:/[^A-Za-z0-9]/',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'email' => 'required|email|max:255|unique:users,email,' . auth()->id(),
             ]);
 

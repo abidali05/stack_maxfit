@@ -23,6 +23,7 @@ use App\Http\Controllers\ExerciseCategoryController;
 use App\Http\Controllers\competitionDetailController;
 use App\Http\Controllers\OrganisationTypesController;
 use App\Http\Controllers\MedicalAssessmentQuestionController;
+use Illuminate\Support\Facades\Log;
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -92,7 +93,7 @@ Route::middleware('auth:coach')->prefix('coach')->as('coach.')->group(function (
 Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(function () {
     Route::get('/dashboard', function () {
         return view('branch.dashboard');
-    })->name('branch.dashboard');
+    })->name('dashboard');
     Route::get('coaches', [CoachController::class, 'index'])->name('getCoaches');
     Route::get('competetions', [BranchCompetitionController::class, 'getCompetitions'])
         ->name('getCompetitions');
@@ -131,6 +132,8 @@ Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(functio
     Route::get('competitions-appeals', [BranchCompetitionController::class, 'competitionAppeals'])->name('competitions.appeals');
     Route::delete('destroy-appeal/{id}', [BranchCompetitionController::class, 'destroyAppeal'])->name('competitions.destroyAppeal');
     Route::put('update-appeal-status/{id}', [BranchCompetitionController::class, 'updateAppealStatus'])->name('competitions.updateAppealStatus');
+        Route::post('/competitions/{id}/generate-results', [CompetitionUserController::class, 'generateResults'])->name('competitions.generate-results');
+
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
@@ -139,6 +142,18 @@ Route::middleware('auth:branch')->prefix('branch')->as('branch.')->group(functio
 Route::get('clear-cache', function () {
     Artisan::call('optimize:clear');
     return "Cache is cleared";
+});
+
+Route::get('/run-queue', function () {
+    try {
+        Log::info('Queue worker started via /run-queue route.');
+        Artisan::call('queue:work --stop-when-empty');
+        Log::info('Queue worker completed successfully.');
+        return response('Queue worker executed.', 200);
+    } catch (\Exception $e) {
+        Log::error('Queue worker failed: ' . $e->getMessage());
+        return response('Queue worker failed: ' . $e->getMessage(), 500);
+    }
 });
 
 Route::get('/force-fix-link', function () {

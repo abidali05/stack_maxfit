@@ -18,6 +18,11 @@ class CompetitionDetail extends Model
         'description',
     ];
 
+    protected $casts = [
+        'start_time' => 'datetime:H:i', // Cast to time format
+        'end_time' => 'datetime:H:i',   // Cast to time format
+    ];
+
     public function competition()
     {
         return $this->belongsTo(Competition::class);
