@@ -61,6 +61,7 @@ class CompetitionController extends Controller
             'org_type' => 'nullable|exists:organisation_types,id',
             'org' => 'nullable|exists:organisations,id',
             'time_allowed' => 'nullable|numeric|min:1',
+            'competition_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'coach_id' => 'required|array|min:1',
             'coach_id.*' => 'required|string|max:100',
             'cities' => 'required|array|min:1',
@@ -114,6 +115,15 @@ class CompetitionController extends Controller
                 'org' => $validated['org'] ?? null,
                 'status' => 'active',
             ];
+
+            if ($request->hasFile('competition_image')) {
+                $file = $request->file('competition_image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('uploads/competitions'), $filename);
+
+                $competitionData['competition_image'] = 'uploads/competitions/' . $filename;
+            }
+
 
             $competition = Competition::create($competitionData);
 

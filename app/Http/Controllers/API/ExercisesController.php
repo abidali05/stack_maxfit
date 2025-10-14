@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use App\Models\Set;
 use App\Models\Exercise;
 use App\Models\ExerciseCategory;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class ExercisesController extends Controller
 {
@@ -30,4 +34,24 @@ class ExercisesController extends Controller
             'exercises' => $exercises
         ], 'Exercises fetched successfully', 200);
     }
+
+    public function assesmentExercises()
+    {
+        $user = Auth::user();
+
+        $age = Carbon::parse($user->dob)->age;
+
+        if ($age < 14) {
+            $allowedGenz = ['motherfits', 'both'];
+        } else {
+            $allowedGenz = ['fatherfits', 'both'];
+        }
+
+        $sets = Set::with('exercises')->whereIn('genz', $allowedGenz)
+            ->get();
+
+        return $this->success($sets, 'Sets fetched successfully', 200);
+    }
+    
+    
 }

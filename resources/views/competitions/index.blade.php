@@ -22,6 +22,7 @@
                                     <th>Organization</th>
                                     <th>Country</th>
                                     <th>Time Allowed (mins)</th>
+                                    <th>Image</th>
                                     <th>Status</th>
                                     <th class="text-end">Action</th>
                                 </tr>
@@ -37,6 +38,16 @@
                                         <td>{{ $competition->organisation->name ?? 'N/A' }}</td>
                                         <td>{{ $competition->country }}</td>
                                         <td>{{ $competition->time_allowed }} mins</td>
+                                        <td>
+                                            @if ($competition->competition_image)
+                                                <img src="{{ asset($competition->competition_image) }}"
+                                                    alt="{{ $competition->name }}" width="60" height="60"
+                                                    class="rounded">
+                                            @else
+                                                <span class="text-muted">No Image</span>
+                                            @endif
+                                        </td>
+
                                         <td>
                                             <span
                                                 class="badge bg-{{ $competition->status == 'active' ? 'success' : 'secondary' }}">

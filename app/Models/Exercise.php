@@ -23,6 +23,11 @@ class Exercise extends Model
         return $this->belongsToMany(Competition::class, 'competition_exercises', 'exercise_id', 'competition_id');
     }
 
+    public function sets()
+    {
+        return $this->belongsToMany(Set::class, 'set_exercises');
+    }
+
     public function getGenzAttribute($value)
     {
         if (strtolower($value) === 'fatherfits') {
@@ -33,4 +38,9 @@ class Exercise extends Model
 
         return $value; // return as-is if not matched
     }
+    public function setExercises()
+{
+    return $this->hasMany(SetExercise::class, 'exercise_id');
+}
+
 }

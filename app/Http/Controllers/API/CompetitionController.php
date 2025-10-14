@@ -15,6 +15,9 @@ use App\Models\CompetitionDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\CompetitionResult;
+use App\Models\CompetitionResultVideo;
+use App\Models\CompetitionUserTotal;
 use Illuminate\Support\Facades\Auth;
 
 class CompetitionController extends Controller
@@ -23,11 +26,11 @@ class CompetitionController extends Controller
     {
         $authId = Auth::id();
 
-        $competitions = Competition::with(['details', 'videos', 'exercises'])
+        $competitions = Competition::with(['details', 'details.coach', 'videos', 'exercises', 'organisation', 'organisationType'])
             ->where('status', 'active')
             ->get()
             ->map(function ($competition) use ($authId) {
-                // Find the status via competition_details → competition_users
+                // Find the status via competition_details â†’ competition_users
                 $competition->status_type = DB::table('competition_users')
                     ->join('competition_details', 'competition_users.competition_detail_id', '=', 'competition_details.id')
                     ->where('competition_details.competition_id', $competition->id)
@@ -43,65 +46,257 @@ class CompetitionController extends Controller
     }
 
 
-    public function getCompetitionStatus(Request $request)
+    public function getCompetitionStatus($status)
     {
         $authId = Auth::id();
 
         // Map numeric status to text
-        $statusText = $request->status == 1 ? 'accepted' : 'rejected';
+        $statusText = $status == 1 ? 'accepted' : 'rejected';
 
-        $competitions = Competition::whereHas('details.competitionUsers', function ($query) use ($authId, $statusText) {
-            $query->where('user_id', $authId)
-                ->where('status', $statusText);
-        })
-            ->with(['details.competitionUsers' => function ($query) use ($authId) {
-                $query->where('user_id', $authId);
-            }])
+        $competitions = CompetitionUser::with([
+            'competitionDetail.Competition'
+        ])
+            ->where('user_id', $authId)
+            ->where('status', $statusText)
             ->get();
 
+
         return $this->success([
-            'status_text' => $statusText,
+            'status_text'  => $statusText,
             'competitions' => $competitions,
         ], 'Competitions fetched successfully', 200);
     }
+    
+public function competitionDetail($id)
+{
+    $competition = Competition::findOrFail($id);
+
+    // Load exercises with their sets
+    $exercises = $competition->exercises()
+        ->with(['sets:id,name']) 
+        ->where(function ($query) use ($competition) {
+            $query->where('genz', strtolower($competition->genz))
+                ->orWhere('genz', 'both');
+        })
+        ->get();
+
+    $competitionDetailIds = CompetitionDetail::where('competition_id', $competition->id)
+        ->pluck('id');
+
+    $competitionUserIds = CompetitionUser::whereIn('competition_detail_id', $competitionDetailIds)
+        ->pluck('id');
+
+    $competitionUserTotals = CompetitionUserTotal::whereIn('competition_user_id', $competitionUserIds)
+        ->with('competitionUser.user')
+        ->get();
+
+    $competitionResultIds = CompetitionResult::whereIn('competition_user_id', $competitionUserIds)
+        ->pluck('id');
+
+    $competitionResults = CompetitionResult::with(['exercise'])
+        ->whereIn('competition_user_id', $competitionUserIds)
+        ->get()
+        ->groupBy('competition_user_id');
+
+    $competitionResultVideos = CompetitionResultVideo::with('result.competitionUser.user')
+        ->whereIn('competition_result_id', $competitionResultIds)
+        ->get();
+
+    // âœ… Map results grouped by set
+    $results = $competitionUserTotals->map(function ($total) use ($exercises, $competitionResults) {
+        $userResults = $competitionResults[$total->competition_user_id] ?? collect();
+
+        // First, build an array where each set has its exercises
+        $setsData = collect();
+
+        foreach ($userResults as $res) {
+            $exercise = $exercises->firstWhere('id', $res->exercise->id);
+            if (!$exercise) continue;
+
+            foreach ($exercise->sets as $set) {
+                if (!$setsData->has($set->id)) {
+                    $setsData->put($set->id, [
+                        'id' => $set->id,
+                        'name' => $set->name,
+                        'exercises' => [],
+                    ]);
+                }
+
+                $setItem = $setsData->get($set->id);
+                $setItem['exercises'][] = [
+                    'id' => $res->exercise->id,
+                    'name' => $res->exercise->name,
+                    'score' => $res->score ?? $res->pivot->score ?? null,
+                ];
+                $setsData->put($set->id, $setItem);
+            }
+        }
+
+        return [
+            'user_id'     => $total->competitionUser->user->id ?? null,
+            'user_image'  => $total->competitionUser->user->image ?? null,
+            'user_name'   => $total->competitionUser->user->name ?? null,
+            'rank'        => $total->rank,
+            'sets'        => $setsData->values(), // ðŸ‘ˆ each set contains its exercises
+        ];
+    });
+
+    $response = [
+        'competition'        => $competition,
+        'exercises'          => $exercises,
+        'results'            => $results,
+        'challenging_videos' => $competitionResultVideos->map(function ($video) {
+            return [
+                'id'           => $video->id,
+                'youtube_link' => $video->youtube_link,
+                'user_name'    => $video->result->competitionUser->user->name ?? null,
+                'user_image'   => $video->result->competitionUser->user->image ?? null,
+            ];
+        }),
+    ];
+
+    return $this->success($response, 'Competition details fetched successfully', 200);
+}
 
 
 
 
-    public function competitionDetail($id)
-    {
-        // Load competition with details and videos
-        $competition = Competition::with(['details', 'videos'])->findOrFail($id);
+// public function competitionDetail($id)
+// {
+//     $competition = Competition::findOrFail($id);
 
-        // Count participants via competition_details -> competition_users
-        $competitionCount = CompetitionUser::whereIn(
-            'competition_detail_id',
-            CompetitionDetail::where('competition_id', $competition->id)->pluck('id')
-        )->count();
+//     // Load exercises with sets
+//     $exercises = $competition->exercises()
+//         ->with(['sets:id,name'])
+//         ->where(function ($query) use ($competition) {
+//             $query->where('genz', strtolower($competition->genz))
+//                 ->orWhere('genz', 'both');
+//         })
+//         ->get();
 
-        // Get current user's status
-        $competitionUserStatus = CompetitionUser::whereIn(
-            'competition_detail_id',
-            CompetitionDetail::where('competition_id', $competition->id)->pluck('id')
-        )
-            ->where('user_id', Auth::id())
-            ->first();
+//     $competitionDetailIds = CompetitionDetail::where('competition_id', $competition->id)
+//         ->pluck('id');
 
-        // Get exercises linked to the competition (via pivot table) filtered by genz (including 'both')
-        $exercises = $competition->exercises()
-            ->where(function ($query) use ($competition) {
-                $query->where('genz', $competition->genz)
-                    ->orWhere('genz', 'both');
-            })
-            ->get();
+//     $competitionUserIds = CompetitionUser::whereIn('competition_detail_id', $competitionDetailIds)
+//         ->pluck('id');
 
-        // Append extra data
-        $competition->participants = $competitionCount;
-        $competition->user_status = $competitionUserStatus->status ?? null;
-        $competition->exercises = $exercises;
+//     $competitionUserTotals = CompetitionUserTotal::whereIn('competition_user_id', $competitionUserIds)
+//         ->with('competitionUser.user')
+//         ->get();
 
-        return $this->success($competition, 'Competition details fetched successfully', 200);
-    }
+//     $competitionResultIds = CompetitionResult::whereIn('competition_user_id', $competitionUserIds)
+//         ->pluck('id');
+
+//     $competitionResults = CompetitionResult::with(['exercise'])
+//         ->whereIn('competition_user_id', $competitionUserIds)
+//         ->get()
+//         ->groupBy('competition_user_id');
+
+//     $competitionResultVideos = CompetitionResultVideo::with('result.competitionUser.user')
+//         ->whereIn('competition_result_id', $competitionResultIds)
+//         ->get();
+
+//     // âœ… Include exercise + sets in results
+//     $results = $competitionUserTotals->map(function ($total) use ($exercises, $competitionResults) {
+//         $userResults = $competitionResults[$total->competition_user_id] ?? collect();
+
+//         $exerciseScores = $userResults->map(function ($res) use ($exercises) {
+//             // Find this exercise in preloaded exercises (to get sets)
+//             $exercise = $exercises->firstWhere('id', $res->exercise->id);
+
+//             // Prepare sets info (id + name)
+//             $sets = $exercise ? $exercise->sets->map(function ($set) {
+//                 return [
+//                     'id'   => $set->id,
+//                     'name' => $set->name,
+//                 ];
+//             }) : collect();
+
+//             return [
+//                 'exercise_id'   => $res->exercise->id ?? null,
+//                 'exercise_name' => $res->exercise->name ?? null,
+//                 'score'         => $res->score ?? null,
+//                 'sets'          => $sets, // ðŸ‘ˆ include sets here
+//             ];
+//         });
+
+//         return [
+//             'user_id'     => $total->competitionUser->user->id ?? null,
+//             'user_image'  => $total->competitionUser->user->image ?? null,
+//             'user_name'   => $total->competitionUser->user->name ?? null,
+//             'rank'        => $total->rank,
+//             'result_exercises' => $exerciseScores, // ðŸ‘ˆ renamed typo too
+//         ];
+//     });
+
+//     $response = [
+//         'competition'        => $competition,
+//         'exercises'          => $exercises,
+//         'results'            => $results,
+//         'challenging_videos' => $competitionResultVideos->map(function ($video) {
+//             return [
+//                 'id'           => $video->id,
+//                 'youtube_link' => $video->youtube_link,
+//                 'user_name'    => $video->result->competitionUser->user->name ?? null,
+//                 'user_image'   => $video->result->competitionUser->user->image ?? null,
+//             ];
+//         }),
+//     ];
+
+//     return $this->success($response, 'Competition details fetched successfully', 200);
+// }
+
+    // public function competitionDetail($id)
+    // {
+    //     $competition = Competition::findOrFail($id);
+
+    //     $exercises = $competition->exercises()
+    //         ->where(function ($query) use ($competition) {
+    //             $query->where('genz', strtolower($competition->genz))
+    //                 ->orWhere('genz', 'both');
+    //         })
+    //         ->get();
+
+    //     $competitionDetailIds = CompetitionDetail::where('competition_id', $competition->id)
+    //         ->pluck('id');
+
+    //     $competitionUserIds = CompetitionUser::whereIn('competition_detail_id', $competitionDetailIds)
+    //         ->pluck('id');
+
+    //     $competitionUserTotals = CompetitionUserTotal::whereIn('competition_user_id', $competitionUserIds)->get();
+
+    //     $competitionResultIds = CompetitionResult::whereIn('competition_user_id', $competitionUserIds)->pluck('id');
+
+    //     $competitionResultVideos = CompetitionResultVideo::with('result.competitionUser.user')
+    //         ->whereIn('competition_result_id', $competitionResultIds)
+    //         ->get();
+
+    //     $results = $competitionUserTotals->map(function ($total) {
+    //         return [
+    //             'user_id' => $total->competitionUser->user->id ?? null,
+    //             'user_image' => $total->competitionUser->user->image ?? null,
+    //             'user_name'  => $total->competitionUser->user->name ?? null,
+    //             'rank'       => $total->rank,
+    //         ];
+    //     });
+
+    //     // Format response
+    //     $response = [
+    //         'competition'       => $competition,
+    //         'exercises'         => $exercises,
+    //         'results'           => $results,
+    //         'challenging_videos' => $competitionResultVideos->map(function ($video) {
+    //             return [
+    //                 'id' => $video->id,
+    //                 'youtube_link' => $video->youtube_link,
+    //                 'user_name'    => $video->result->competitionUser->user->name ?? null,
+    //                 'user_image'   => $video->result->competitionUser->user->image ?? null,
+    //             ];
+    //         }),
+    //     ];
+
+    //     return $this->success($response, 'Competition details fetched successfully', 200);
+    // }
 
 
     public function getCompetitionDetail($id)
@@ -233,30 +428,19 @@ class CompetitionController extends Controller
     public function writeAppeal(Request $request)
     {
         $request->validate([
-            'competition_video_id' => 'required|exists:competition_videos,id',
+            'competition_result_video_id' => 'required|exists:competition_result_videos,id',
             'appeal_text' => 'required|string|max:1000',
         ]);
 
-        $competitionVideo = CompetitionVideo::findOrFail($request->competition_video_id);
+        $competitionVideo = CompetitionResultVideo::findOrFail($request->competition_result_video_id);
 
-        // Fetch the competition detail ID that this video belongs to
-        $competitionDetailId = \App\Models\CompetitionDetail::where('competition_id', $competitionVideo->competition_id)
-            ->value('id');
+        // $competitionDetailId = CompetitionDetail::where('competition_id', $competitionVideo->competition_id)
+        //     ->value('id');
 
-        if (!$competitionDetailId) {
-            return $this->error('Competition detail not found for this video', [], 404);
-        }
-
-        // Check if the authenticated user is part of this competition detail
-        // $competitionUser = CompetitionUser::where('user_id', Auth::id())
-        //     ->where('competition_detail_id', $competitionDetailId)
-        //     ->first();
-
-        // if (!$competitionUser) {
-        //     return $this->error('You are not participating in this competition', [], 404);
+        // if (!$competitionDetailId) {
+        //     return $this->error('Competition detail not found for this video', [], 404);
         // }
 
-        // Create the appeal
         $storeAppeal = CompetitionAppeal::create([
             'user_id' => Auth::id(),
             'competition_video_id' => $competitionVideo->id,
@@ -273,24 +457,60 @@ class CompetitionController extends Controller
 
     public function getAppeal($id)
     {
-        $authId = Auth::id();
+$authId = Auth::id();
 
-        // Eager load videos with each competition
-        $competition = Competition::with('details', 'videos')->findOrFail($id);
+$competition = Competition::with([
+    'details.competitionUsers.results.videos.result_appel',
+])->findOrFail($id);
 
-        // Get all video IDs for this competition
-        $videoIds = $competition->videos->pluck('id')->toArray();
+$appels = $competition->details
+    ->flatMap(function ($detail) use ($authId, $competition) {
+        return $detail->competitionUsers
+            ->flatMap(fn($user) => $user->results)
+            ->flatMap(fn($result) => $result->videos)
+            ->flatMap(fn($video) => $video->result_appel ?? [])
+            ->filter(fn($appel) => $appel->user_id == $authId)
+            ->map(function ($appel) use ($detail, $competition) {
+                return [
+                    'id' => $appel->id,
+                    'user_id' => $appel->user_id,
+                    'competition_video_id' => $appel->competition_video_id,
+                    'appeal_text' => $appel->appeal_text,
+                    'status' => $appel->status,
+                    'created_at' => $appel->created_at,
+                    'updated_at' => $appel->updated_at,
+                    'competition_name' => $competition->name ?? null, // 👈 Competition name
+                    'competition_image' => $detail->image ?? null,     // 👈 Image from detail
+                ];
+            });
+    })
+    ->values();
 
-        // Fetch appeals with their related competitionVideo
-        $appeals = CompetitionAppeal::with('competitionVideo')
-            ->whereIn('competition_video_id', $videoIds)
-            ->where('user_id', $authId)
-            ->get();
+return response()->json([
+    'appels' => $appels,
+]);
 
-        return $this->success([
-            'competition' => $competition,
-            'appeals' => $appeals,
-        ], 'Appeals retrieved successfully');
+
+        
+        /////////////Abbid code
+//         $authId = Auth::id();
+
+//         // Eager load videos with each competition
+//         $competition = Competition::with('details', 'videos')->findOrFail($id);
+// // dd('there');
+//         // Get all video IDs for this competition
+//         $videoIds = $competition->videos->pluck('id')->toArray();
+
+//         // Fetch appeals with their related competitionVideo
+//         $appeals = CompetitionAppeal::with('competitionVideo')
+//             ->whereIn('competition_video_id', $videoIds)
+//             ->where('user_id', $authId)
+//             ->get();
+
+//         return $this->success([
+//             'competition' => $competition,
+//             'appeals' => $appeals,
+//         ], 'Appeals retrieved successfully');
     }
 
 

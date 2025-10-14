@@ -36,18 +36,31 @@ class CompetitionUserController extends Controller
     {
         $competitionUser = CompetitionUser::findOrFail($id);
 
-        $scores = $request->input('scores'); // array: exercise_id => score
+        $scores = $request->input('scores', []); // array: exercise_id => score
+        $youtubeLinks = $request->input('youtube_links', []); // array of links
 
         $totalScore = 0;
 
         foreach ($scores as $exerciseId => $score) {
-            CompetitionResult::updateOrCreate(
+            $result = CompetitionResult::updateOrCreate(
                 [
                     'competition_user_id' => $competitionUser->id,
                     'exercise_id' => $exerciseId
                 ],
                 ['score' => $score]
             );
+
+            // Save YouTube links for this exercise result
+            if (isset($youtubeLinks[$exerciseId])) {
+                $result->videos()->delete(); // clear old
+                foreach ($youtubeLinks[$exerciseId] as $link) {
+                    if ($link) {
+                        $result->videos()->create([
+                            'youtube_link' => $link
+                        ]);
+                    }
+                }
+            }
 
             $totalScore += floatval($score);
         }
@@ -58,8 +71,9 @@ class CompetitionUserController extends Controller
             ['total_score' => $totalScore]
         );
 
-        return redirect()->back()->with('success', 'Scores updated!');
+        return redirect()->back()->with('success', 'Scores and videos updated!');
     }
+
 
     public function editRank($id)
     {

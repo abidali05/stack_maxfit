@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Models\DailyAssessment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -112,4 +113,65 @@ class ProfileController extends Controller
             'message' => 'Password updated successfully.',
         ]);
     }
+    public function daily_assesments_index(Request $request)
+    {
+        // dd('ther');
+        $user = Auth::user();
+    
+        // Validate incoming request
+        $request->validate([
+            'assessments' => 'required|array',
+            'assessments.*.set_id' => 'required|exists:sets,id',
+            'assessments.*.exercise_id' => 'required|exists:exercises,id',
+            'assessments.*.count' => 'required|integer|min:0',
+        ]);
+    
+        $savedAssessments = [];
+    
+        foreach ($request->assessments as $assessmentData) {
+            $savedAssessments[] = DailyAssessment::create([
+                'user_id' => $user->id,
+                'set_id' => $assessmentData['set_id'],
+                'exercise_id' => $assessmentData['exercise_id'],
+                'count' => $assessmentData['count'], // ✅ column name should match DB
+            ]);
+        }
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Daily assessments saved successfully',
+            'data' => $savedAssessments,
+        ]);
+    }
+    public function daily_assesments(Request $request, $id)
+    {
+        try {
+            $assessments = DailyAssessment::with(['user', 'set', 'exercise'])
+                            ->where('user_id', $id)
+                            ->get();
+    
+            if ($assessments->isEmpty()) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => null, // agar empty record ho
+                    'message' => 'No daily assessments found for this user.'
+                ]);
+            }
+    
+            return response()->json([
+                'status' => 'success',
+                'data' => $assessments,
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+
+    
 }

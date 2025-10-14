@@ -82,8 +82,16 @@
                 </div>
             </div>
 
+            <a href="{{ route('sets.index') }}" class="nav-item nav-link {{ Route::is('sets.*') ? 'active' : '' }}">
+                <i class="fas fa-clipboard-list me-2"></i>Sets
+            </a>
+
             <a href="{{ route('plans.index') }}" class="nav-item nav-link {{ Route::is('plans.*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard-list me-2"></i>Plans
+            </a>
+
+            <a href="{{ route('exercise-assessment.index') }}" class="nav-item nav-link {{ Route::is('exercise-assessment.*') ? 'active' : '' }}">
+                <i class="fas fa-file-medical me-2"></i>Exercise Assessment
             </a>
 
             <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">

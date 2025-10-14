@@ -601,17 +601,17 @@
                 isValid = false;
             }
 
-            const orgType = document.querySelector('select[name="org_type"]');
-            if (!orgType.value) {
-                document.getElementById('org_type-error').textContent = 'Organization type is required.';
-                isValid = false;
-            }
+            // const orgType = document.querySelector('select[name="org_type"]');
+            // if (!orgType.value) {
+            //     document.getElementById('org_type-error').textContent = 'Organization type is required.';
+            //     isValid = false;
+            // }
 
-            const org = document.querySelector('select[name="org"]');
-            if (!org.value) {
-                document.getElementById('org-error').textContent = 'Organization is required.';
-                isValid = false;
-            }
+            // const org = document.querySelector('select[name="org"]');
+            // if (!org.value) {
+            //     document.getElementById('org-error').textContent = 'Organization is required.';
+            //     isValid = false;
+            // }
 
             // Validate YouTube links
             const youtubeLinks = document.querySelectorAll('input[name="youtube_links[]"]');
