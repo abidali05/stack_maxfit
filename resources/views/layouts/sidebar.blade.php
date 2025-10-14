@@ -94,6 +94,10 @@
                 <i class="fas fa-file-medical me-2"></i>Exercise Assessment
             </a>
 
+            <a href="{{ route('user-assessments.index') }}" class="nav-item nav-link {{ Route::is('user-assessments.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-line me-2"></i>User Assessments
+            </a>
+
             <a href="{{ route('medical-assessment-questions.index') }}" class="nav-item nav-link {{ Route::is('medical-assessment-questions.*') ? 'active' : '' }}">
                 <i class="fas fa-file-medical me-2"></i>Medical Assessment
             </a>
