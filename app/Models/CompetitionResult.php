@@ -22,4 +22,21 @@ class CompetitionResult extends Model
     {
         return $this->belongsTo(Exercise::class);
     }
+
+    public function videos()
+    {
+        return $this->hasMany(CompetitionResultVideo::class);
+    }
+
+    public function user()
+    {
+        return $this->hasOneThrough(
+            User::class,
+            CompetitionUser::class,
+            'id',           // Foreign key on competition_users
+            'id',           // Foreign key on users
+            'competition_user_id', // Local key on competition_results
+            'user_id'       // Local key on competition_users
+        );
+    }
 }

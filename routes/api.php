@@ -31,12 +31,17 @@ Route::prefix('v1')->group(function () {
     Route::post('send-otp', [ForgetPasswordController::class, 'sendotp']);
     Route::post('check-otp', [ForgetPasswordController::class, 'checkOtp']);
     Route::post('forget-update-password', [ForgetPasswordController::class, 'forgetUpdatePassword']);
+    
+     
+
 });
+
 
 // ==========================================================================protected routes==============================================================
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
+     
 
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/user-personal-info', [PersonalInfoController::class, 'profile']);
@@ -47,6 +52,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/medical-assessment-answers', MedicalAssessmentAnswerController::class);
     Route::get('/medical-assessment-questions', MedicalAssessmentQuestionController::class);
     Route::get('/exercises', ExercisesController::class);
+    Route::get('/assesment-exercises', [ExercisesController::class, 'assesmentExercises']);
     Route::get('/get-category', [ExercisesController::class, 'getCategory']);
     Route::get('/get-category-exercises/{id}', [ExercisesController::class, 'getCategoryExercises']);
     Route::post('/user-assessment-exercises', UserAssessmentExerciseController::class);
@@ -54,6 +60,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/plan-questions', PlanQuestionController::class);
     Route::post('/plan-answers', PlanAnswerController::class);
     Route::get('/plans', PlanController::class);
+    
+    //usman daily assesments
+    Route::post('/daily-assesment', [ProfileController::class, 'daily_assesments_index']);
+    Route::get('/daily-assesment-index/{id}', [ProfileController::class, 'daily_assesments']);
+    
 
     Route::get('/get-competitions', [CompetitionController::class, 'getCompetition']);
     Route::get('/competition-detail/{id}', [CompetitionController::class, 'competitionDetail']);

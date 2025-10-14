@@ -88,7 +88,7 @@ class AuthController extends Controller
         if ($userDob) {
             $age = Carbon::parse($userDob)->age;
 
-            $genz = $age < 13 ? 'motherfits' : 'fatherfits';
+            $genz = $age < 13 ? 'Mother Fit' : 'Father Fit';
 
             $user->genz = $genz;
         }

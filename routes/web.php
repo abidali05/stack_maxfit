@@ -21,8 +21,10 @@ use App\Http\Controllers\CompetitionUserController;
 use App\Http\Controllers\RulesOfCountingController;
 use App\Http\Controllers\ExerciseCategoryController;
 use App\Http\Controllers\competitionDetailController;
+use App\Http\Controllers\ExerciseAssessmentController;
 use App\Http\Controllers\OrganisationTypesController;
 use App\Http\Controllers\MedicalAssessmentQuestionController;
+use App\Http\Controllers\SetsController;
 use Illuminate\Support\Facades\Log;
 
 Route::get('/dashboard', function () {
@@ -44,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('organisation-types', OrganisationTypesController::class);
     Route::resource('organisations', OrganisationController::class);
     Route::resource('medical-assessment-questions', MedicalAssessmentQuestionController::class);
+    Route::resource('exercise-assessment', ExerciseAssessmentController::class);
     Route::resource('exercise-categories', ExerciseCategoryController::class);
     Route::resource('exercises', ExerciseController::class);
     Route::resource('plan-questions', PlanQuestionController::class);
@@ -62,10 +65,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('destroy-appeal/{id}', [CompetitionController::class, 'destroyAppeal'])->name('competitions.destroyAppeal');
     Route::put('update-appeal-status/{id}', [CompetitionController::class, 'updateAppealStatus'])->name('competitions.updateAppealStatus');
     Route::resource('results', ResultController::class);
+    Route::resource('sets', SetsController::class);
+    Route::get('/set/exercises-by-genz', [SetsController::class, 'getExercisesByGenz'])->name('sets.exercises-by-genz');
     Route::resource('plans', PlansController::class);
     Route::resource('rulesof-counting', RulesOfCountingController::class);
     Route::resource('coaches', App\Http\Controllers\CoachController::class);
     Route::resource('branches', App\Http\Controllers\BranchController::class);
+    
+    Route::get('exercise-assessment', [App\Http\Controllers\ExerciseAssessmentController::class, 'index'])->name('exercise-assessment.index');
+    Route::get('exercise-assessment/set/{setId}', [App\Http\Controllers\ExerciseAssessmentController::class, 'setDetails'])->name('exercise-assessment.set-details');
+    Route::get('exercise-assessment/exercise/{exerciseId}', [App\Http\Controllers\ExerciseAssessmentController::class, 'exerciseDetails'])->name('exercise-assessment.exercise-details');
 });
 
 
