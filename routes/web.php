@@ -75,6 +75,8 @@ Route::middleware('auth')->group(function () {
     Route::get('exercise-assessment', [App\Http\Controllers\ExerciseAssessmentController::class, 'index'])->name('exercise-assessment.index');
     Route::get('exercise-assessment/set/{setId}', [App\Http\Controllers\ExerciseAssessmentController::class, 'setDetails'])->name('exercise-assessment.set-details');
     Route::get('exercise-assessment/exercise/{exerciseId}', [App\Http\Controllers\ExerciseAssessmentController::class, 'exerciseDetails'])->name('exercise-assessment.exercise-details');
+    
+    Route::get('user-assessments', [App\Http\Controllers\UserAssessmentController::class, 'index'])->name('user-assessments.index');
 });
 
 
