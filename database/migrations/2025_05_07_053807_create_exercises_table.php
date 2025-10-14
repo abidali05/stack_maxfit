@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('exercise_category_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('genz');
+            $table->string('exercise_type')->nullable();
             $table->longText('description')->nullable();
             $table->string('image')->nullable();
             $table->string('youtube_link')->nullable();
